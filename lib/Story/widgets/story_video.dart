@@ -1,0 +1,124 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cached_video_player/cached_video_player.dart';
+import 'package:flutter/material.dart';
+import '../utils.dart';
+import '../controller/story_controller.dart';
+
+class VideoLoader {
+  String url;
+
+  File? videoFile;
+
+  Map<String, dynamic>? requestHeaders;
+
+  LoadState state = LoadState.loading;
+
+  VideoLoader(this.url, {this.requestHeaders});
+}
+
+class StoryVideo extends StatefulWidget {
+  final StoryController? storyController;
+  final VideoLoader videoLoader;
+
+  StoryVideo(this.videoLoader, {this.storyController, Key? key})
+      : super(key: key ?? UniqueKey());
+
+  static StoryVideo url(String url,
+      {StoryController? controller,
+      Map<String, dynamic>? requestHeaders,
+      Key? key}) {
+    return StoryVideo(
+      VideoLoader(url, requestHeaders: requestHeaders),
+      storyController: controller,
+      key: key,
+    );
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    return StoryVideoState();
+  }
+}
+
+class StoryVideoState extends State<StoryVideo> {
+  Future<void>? playerLoader;
+
+  StreamSubscription? _streamSubscription;
+
+  CachedVideoPlayerController? playerController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.storyController!.pause();
+
+    playerController =
+        CachedVideoPlayerController.network(widget.videoLoader.url);
+
+    playerController!.initialize().then((v) {
+      setState(() {});
+      widget.storyController!.play();
+    });
+
+    if (widget.storyController != null) {
+      _streamSubscription =
+          widget.storyController!.playbackNotifier.listen((playbackState) {
+        if (playbackState == PlaybackState.pause) {
+          playerController!.pause();
+        } else {
+          playerController!.play();
+        }
+      });
+    }
+  }
+
+  Widget getContentView() {
+    if (playerController!.value.isInitialized) {
+      return Center(
+        child: AspectRatio(
+          aspectRatio: playerController!.value.aspectRatio,
+          child: CachedVideoPlayer(playerController!),
+        ),
+      );
+    }
+
+    return !playerController!.value.isInitialized
+        ? Center(
+            child: Container(
+              width: 70,
+              height: 70,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
+              ),
+            ),
+          )
+        : Center(
+            child: Text(
+            "Media failed to load.",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      height: double.infinity,
+      width: double.infinity,
+      child: getContentView(),
+    );
+  }
+
+  @override
+  void dispose() {
+    playerController?.dispose();
+    _streamSubscription?.cancel();
+    super.dispose();
+  }
+}
