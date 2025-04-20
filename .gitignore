@@ -1,0 +1,50 @@
+# Flutter/Dart ile ilgili
+.dart_tool/
+.packages
+.pub-cache/
+build/
+flutter_*.png
+generated_plugin_registrant.dart
+
+# Android ile ilgili
+android/.gradle/
+android/captures/
+android/.idea/
+*.iml
+*.keystore
+local.properties
+
+# iOS ile ilgili
+ios/Flutter/Generated.xcconfig
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/
+ios/.dart_tool/
+
+# Web ile ilgili
+web/.dart_tool/
+
+# MacOS
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Pods/
+macos/Runner.xcworkspace/
+macos/.dart_tool/
+
+# Windows
+windows/flutter/ephemeral/
+windows/.dart_tool/
+
+# Linux
+linux/flutter/ephemeral/
+linux/.dart_tool/
+
+# VS Code ve IntelliJ
+.vscode/
+.idea/
+
+# Diğer
+*.log
+*.tmp
+*.swp
+*.DS_Store
+.env

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "966060583440",
+    "project_id": "eppser-1a6a5",
+    "storage_bucket": "eppser-1a6a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:966060583440:android:b82235d7c812d0ecabb895",
+        "android_client_info": {
+          "package_name": "com.eppser.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "966060583440-opusgl85qcpho05nervrrgqog9i9ina9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eppser.app",
+            "certificate_hash": "de818e7370f35d1a2275b4108b4f4357fc33a887"
+          }
+        },
+        {
+          "client_id": "966060583440-fba1i3t18n1sml9naqecb95mufnkpuhb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzW2ybMDlS4fVxts4SiiuI6WGMvWl-jYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "966060583440-fba1i3t18n1sml9naqecb95mufnkpuhb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
