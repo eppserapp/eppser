@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Pages/CommunityPage.dart';
+import 'package:eppser/Pages/CreateCommunity.dart';
 import 'package:eppser/Pages/NotificationsPage.dart';
 import 'package:eppser/Providers/themeProvider.dart';
 import 'package:eppser/Theme/Theme.dart';
@@ -39,16 +41,33 @@ class _HomeState extends State<Home> {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: const Text(
-                "eppser",
-                style: TextStyle(
-                    fontFamily: 'font1', fontSize: 38, color: Colors.white),
-              ).animate().move(
-                    duration: 800.ms,
-                    begin: const Offset(-20, 0),
-                    end: Offset.zero,
-                    curve: Curves.easeOut,
-                  ),
+              child: Row(
+                children: [
+                  const Text(
+                    "eppser",
+                    style: TextStyle(
+                        fontFamily: 'font1', fontSize: 38, color: Colors.white),
+                  ).animate().move(
+                        duration: 800.ms,
+                        begin: const Offset(-20, 0),
+                        end: Offset.zero,
+                        curve: Curves.easeOut,
+                      ),
+                  const Text(" "),
+                  const Text('test version',
+                          style: TextStyle(
+                              fontFamily: 'font1',
+                              fontSize: 15,
+                              color: Colors.amber))
+                      .animate()
+                      .move(
+                        duration: 800.ms,
+                        begin: const Offset(-20, 0),
+                        end: Offset.zero,
+                        curve: Curves.easeOut,
+                      ),
+                ],
+              ),
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -98,7 +117,7 @@ class _HomeState extends State<Home> {
             alignment: Alignment.centerLeft,
             child: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 Icon(
@@ -106,7 +125,7 @@ class _HomeState extends State<Home> {
                   size: 28,
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 5,
                 ),
                 Text("Topluluklar",
@@ -119,202 +138,233 @@ class _HomeState extends State<Home> {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: ListView.builder(
-              itemCount: 10, // Toplam 10 topluluk olacak
-              itemBuilder: (context, index) {
-                final communityNames = [
-                  "Gençlik ve Spor Bakanlığı",
-                  "eppser Technology",
-                  "Kültür ve Turizm Derneği",
-                  "Eğitim ve Araştırma Vakfı",
-                  "Sağlık ve Yaşam Platformu",
-                  "Çevre ve Doğa Koruma Grubu",
-                  "Bilim ve Teknoloji Kulübü",
-                  "Sanat ve Tasarım Topluluğu",
-                  "Sosyal Yardımlaşma Derneği",
-                  "Spor ve Fitness Kulübü"
-                ];
-
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const CommunityPage()));
-                  },
-                  child: Column(
-                    children: [
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            child: Container(
-                              width: double.infinity,
-                              height: 200,
-                              // Farklı tasarım çeşidi için index'e göre iki farklı görsel kullanılıyor
-                              child: index % 2 == 0
-                                  ? Image.network(
-                                      'https://cdnuploads.aa.com.tr/uploads/Contents/2018/07/10/thumbs_b_c_66c4535fcc5cc49e96dd7cc6187ddd7f.jpg',
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Image.asset(
-                                      'assets/images/moneybackground.jpg',
-                                      fit: BoxFit.cover,
-                                    ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 8,
-                            top: 5,
-                            child: Container(
-                              width: 70,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      "10",
-                                      style: GoogleFonts.exo(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    const Icon(
-                                      Iconsax.profile_2user,
-                                      size: 22,
-                                      color: Colors.deepOrange,
-                                    )
-                                  ],
+            child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('Community')
+                    .where('approved', isEqualTo: true)
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                        child: Text(
+                      "Hiç Topluluk Yok",
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          fontSize: 16),
+                    ));
+                  }
+                  final docs = snapshot.data!.docs;
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data() as Map<String, dynamic>;
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CommunityPage(
+                                        communityId: data['communityId'],
+                                      )));
+                        },
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 200,
+                                    child: data['imageUrl'] != null
+                                        ? Image.network(
+                                            data['imageUrl'],
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'assets/images/moneybackground.jpg',
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 5,
-                            left: 10,
-                            right: 10,
-                            child: Container(
-                              width: MediaQuery.of(context).size.width - 20,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 10),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(24),
-                                      child: SizedBox(
-                                        height: 60,
-                                        width: 60,
-                                        child: index % 2 == 0
-                                            ? CachedNetworkImage(
-                                                placeholderFadeInDuration:
-                                                    const Duration(
-                                                        microseconds: 1),
-                                                fadeOutDuration: const Duration(
-                                                    microseconds: 1),
-                                                fadeInDuration: const Duration(
-                                                    milliseconds: 1),
-                                                imageUrl:
-                                                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAVcWT8y5HNy8sKVKBAq6sTSiGHVBaa2u37w&s',
-                                                fit: BoxFit.cover,
-                                                errorWidget: (context, url,
-                                                        error) =>
-                                                    const Icon(Icons.error,
-                                                        color: Colors.black),
-                                              )
-                                            : CachedNetworkImage(
-                                                placeholderFadeInDuration:
-                                                    const Duration(
-                                                        microseconds: 1),
-                                                fadeOutDuration: const Duration(
-                                                    microseconds: 1),
-                                                fadeInDuration: const Duration(
-                                                    milliseconds: 1),
-                                                imageUrl:
-                                                    'https://play-lh.googleusercontent.com/uBGehMmEy7REdSI3Nr-XFQIKQj0vfziIZfrCobLRDxHB8O7BIl5tdZy4aViTxwnad0I=w480-h960-rw',
-                                                fit: BoxFit.cover,
-                                                errorWidget: (context, url,
-                                                        error) =>
-                                                    const Icon(Icons.error,
-                                                        color: Colors.black),
-                                              ),
+                                Positioned(
+                                  right: 8,
+                                  top: 5,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            data['members'] != null
+                                                ? data['members']
+                                                    .length
+                                                    .toString()
+                                                : "0",
+                                            style: GoogleFonts.exo(
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.color,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          const Icon(
+                                            Iconsax.profile_2user,
+                                            size: 22,
+                                            color: Colors.deepOrange,
+                                          )
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                ),
+                                Positioned(
+                                  bottom: 5,
+                                  left: 10,
+                                  right: 10,
+                                  child: Container(
+                                    width:
+                                        MediaQuery.of(context).size.width - 20,
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor,
+                                      borderRadius: BorderRadius.circular(32),
+                                    ),
+                                    child: Row(
                                       children: [
-                                        Text(
-                                          communityNames[
-                                              index % communityNames.length],
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 10),
+                                          child: data['photoUrl'] != null
+                                              ? ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                  child: SizedBox(
+                                                    height: 60,
+                                                    width: 60,
+                                                    child: CachedNetworkImage(
+                                                      placeholderFadeInDuration:
+                                                          const Duration(
+                                                              microseconds: 1),
+                                                      fadeOutDuration:
+                                                          const Duration(
+                                                              microseconds: 1),
+                                                      fadeInDuration:
+                                                          const Duration(
+                                                              milliseconds: 1),
+                                                      imageUrl:
+                                                          data['photoUrl'],
+                                                      fit: BoxFit.cover,
+                                                      errorWidget: (context,
+                                                              url, error) =>
+                                                          const Icon(
+                                                              Icons.error,
+                                                              color:
+                                                                  Colors.black),
+                                                    ),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  height: 60,
+                                                  width: 60,
+                                                  decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                              0, 86, 255, 1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              24)),
+                                                  child: const Icon(
+                                                    Iconsax.people,
+                                                    color: Colors.white,
+                                                    size: 50,
+                                                  ),
+                                                ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                data['name'] ?? "Topluluk Adı",
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.color,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                "lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et, varius dolor.",
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.color,
+                                                  fontSize: 10,
+                                                ),
+                                              )
+                                            ],
                                           ),
                                         ),
-                                        Text(
-                                          "lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et, varius dolor.",
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color,
-                                            fontSize: 10,
-                                          ),
-                                        )
                                       ],
                                     ),
                                   ),
-                                ],
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Container(
+                                height: 3,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
+                                    borderRadius: BorderRadius.circular(10)),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Container(
-                          height: 3,
-                          width: 50,
-                          decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
-                              borderRadius: BorderRadius.circular(10)),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                      );
+                    },
+                  );
+                }),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CreateCommunity(),
+              ));
+        },
+        child: const Icon(Iconsax.add,
+            size: 30, color: Colors.deepOrange), // Change the icon as needed
       ),
     );
   }

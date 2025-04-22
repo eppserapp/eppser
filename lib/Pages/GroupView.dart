@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Database/Groups.dart';
+import 'package:eppser/Pages/BottomBar.dart';
 import 'package:eppser/Pages/Chat.dart';
 import 'package:eppser/Pages/Home.dart';
 import 'package:eppser/Resources/firestoreMethods.dart';
@@ -40,6 +41,8 @@ class _GroupViewState extends State<GroupView> {
     });
     try {
       var Snap = await FirebaseFirestore.instance
+          .collection('Community')
+          .doc(widget.snap['communityId'])
           .collection('Groups')
           .doc(widget.snap['groupId'])
           .get();
@@ -364,11 +367,12 @@ class _GroupViewState extends State<GroupView> {
                                           isLoading = true;
                                         });
                                         await FireStoreMethods()
-                                            .editGroup(
+                                            .editCommunityGroup(
                                           _nameController.text != ""
                                               ? _nameController.text.trim()
                                               : groupData['name'],
                                           groupData['groupId'],
+                                          groupData['communityId'],
                                           _file,
                                           _aboutController.text != ""
                                               ? _aboutController.text.trim()
@@ -437,18 +441,21 @@ class _GroupViewState extends State<GroupView> {
                             TextButton(
                               onPressed: () {
                                 FirebaseFirestore.instance
+                                    .collection('Community')
+                                    .doc(groupData['communityId'])
                                     .collection('Groups')
-                                    .doc(widget.snap['groupId'])
+                                    .doc(groupData['groupId'])
                                     .update({
                                   'members': FieldValue.arrayRemove(
                                       [FirebaseAuth.instance.currentUser!.uid]),
                                   'admins': FieldValue.arrayRemove(
                                       [FirebaseAuth.instance.currentUser!.uid])
                                 });
+
                                 Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const Home(),
+                                      builder: (context) => bottomBar(),
                                     ),
                                     (route) => false);
                               },
@@ -555,6 +562,8 @@ class _GroupViewState extends State<GroupView> {
                                               'Yöneticilikten Çıkar'),
                                           onPressed: () {
                                             FirebaseFirestore.instance
+                                                .collection('Community')
+                                                .doc(groupData['communityId'])
                                                 .collection('Groups')
                                                 .doc(groupData['groupId'])
                                                 .update({
@@ -572,6 +581,8 @@ class _GroupViewState extends State<GroupView> {
                                           child: const Text('Yönetici Yap'),
                                           onPressed: () {
                                             FirebaseFirestore.instance
+                                                .collection('Community')
+                                                .doc(groupData['communityId'])
                                                 .collection('Groups')
                                                 .doc(groupData['groupId'])
                                                 .update({
@@ -594,6 +605,8 @@ class _GroupViewState extends State<GroupView> {
                                           child: const Text('Gruptan Çıkar'),
                                           onPressed: () {
                                             FirebaseFirestore.instance
+                                                .collection('Community')
+                                                .doc(groupData['communityId'])
                                                 .collection('Groups')
                                                 .doc(groupData['groupId'])
                                                 .update({
@@ -706,7 +719,10 @@ class _GroupViewState extends State<GroupView> {
                                           userData[index]['bio'],
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            color: Colors.grey[200],
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color,
                                           ),
                                         ),
                                       ),

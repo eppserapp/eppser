@@ -19,8 +19,9 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class GroupChat extends StatefulWidget {
-  final snap;
-  const GroupChat({super.key, this.snap});
+  final groupId;
+  final communityId;
+  const GroupChat({super.key, this.groupId, this.communityId});
 
   @override
   State<GroupChat> createState() => _GroupChatState();
@@ -100,8 +101,10 @@ class _GroupChatState extends State<GroupChat> {
   void listenGroupMessages() {
     subscription?.cancel();
     subscription = FirebaseFirestore.instance
+        .collection('Community')
+        .doc(widget.communityId)
         .collection('Groups')
-        .doc(widget.snap)
+        .doc(widget.groupId)
         .collection('Messages')
         .orderBy('date')
         .snapshots()
@@ -117,7 +120,7 @@ class _GroupChatState extends State<GroupChat> {
         updatedMessages[index.toString()] = data;
         index++;
       }
-      GroupMessageBox.saveGroupMessage(widget.snap, updatedMessages);
+      GroupMessageBox.saveGroupMessage(widget.groupId, updatedMessages);
       setState(() {
         message = updatedMessages;
       });
@@ -136,12 +139,14 @@ class _GroupChatState extends State<GroupChat> {
     });
     try {
       var Snap = await FirebaseFirestore.instance
+          .collection('Community')
+          .doc(widget.communityId)
           .collection('Groups')
-          .doc(widget.snap)
+          .doc(widget.groupId)
           .get();
 
       groupData = Snap.data();
-      GroupBox.saveGroupData(widget.snap, groupData);
+      GroupBox.saveGroupData(widget.groupId, groupData);
       setState(() {});
     } catch (e) {
       print(e.toString());
@@ -185,8 +190,10 @@ class _GroupChatState extends State<GroupChat> {
 
   isSeen() async {
     await FirebaseFirestore.instance
+        .collection('Community')
+        .doc(widget.communityId)
         .collection('Groups')
-        .doc(widget.snap)
+        .doc(widget.groupId)
         .collection('Messages')
         .where('isSeen', isNotEqualTo: [FirebaseAuth.instance.currentUser!.uid])
         .get()
@@ -323,7 +330,7 @@ class _GroupChatState extends State<GroupChat> {
               body: ValueListenableBuilder(
                 valueListenable: Hive.box('groupMessageBox').listenable(),
                 builder: (context, value, child) {
-                  if (GroupMessageBox.getGroupMessage(widget.snap) != null) {
+                  if (GroupMessageBox.getGroupMessage(widget.groupId) != null) {
                     message =
                         GroupMessageBox.getGroupMessage(groupData['groupId']);
                   }
@@ -796,272 +803,325 @@ class _GroupChatState extends State<GroupChat> {
                   );
                 },
               ),
-              bottomNavigationBar: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).appBarTheme.backgroundColor,
-                          borderRadius: BorderRadius.all(Radius.circular(18))),
-                      margin: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).viewInsets.bottom),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxHeight: 300.0,
-                        ),
-                        child: Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  _toggleEmojiKeyboard();
-                                },
-                                icon: const Icon(Iconsax.emoji_happy)),
-                            Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 0, right: 8),
-                                child: TextField(
-                                  focusNode: focusNode,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color),
-                                  controller: _textEditingController,
-                                  maxLines: null,
-                                  decoration: const InputDecoration(
-                                    focusColor: Colors.white,
-                                    hintText: 'Mesaj yaz...',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    border: InputBorder.none,
-                                  ),
-                                ),
+              bottomNavigationBar: groupData['members']
+                      .contains(FirebaseAuth.instance.currentUser!.uid)
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .appBarTheme
+                                    .backgroundColor,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(18))),
+                            margin: EdgeInsets.only(
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxHeight: 300.0,
                               ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                if (mounted) {
-                                  if (_scrollController.position.pixels >=
-                                      _scrollController
-                                              .position.maxScrollExtent -
-                                          200) {
-                                    // Eğer son 300 pikseldeyse scrool işlemini gerçekleştir
-                                    Future.delayed(Duration(milliseconds: 50),
-                                        () {
-                                      _scrollController.animateTo(
-                                        _scrollController
-                                            .position.maxScrollExtent,
-                                        curve: Curves.easeInOut,
-                                        duration: Duration(milliseconds: 200),
-                                      );
-                                    });
-                                  }
-                                }
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return Stack(
-                                      children: [
-                                        Container(
-                                          height: 200,
-                                          width: double.infinity,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.vertical(
-                                                top: Radius.circular(20.0)),
-                                          ),
-                                          child: Column(
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                      onPressed: () {
+                                        _toggleEmojiKeyboard();
+                                      },
+                                      icon: const Icon(Iconsax.emoji_happy)),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 0, right: 8),
+                                      child: TextField(
+                                        focusNode: focusNode,
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color),
+                                        controller: _textEditingController,
+                                        maxLines: null,
+                                        decoration: const InputDecoration(
+                                          focusColor: Colors.white,
+                                          hintText: 'Mesaj yaz...',
+                                          hintStyle:
+                                              TextStyle(color: Colors.grey),
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      if (mounted) {
+                                        if (_scrollController.position.pixels >=
+                                            _scrollController
+                                                    .position.maxScrollExtent -
+                                                200) {
+                                          // Eğer son 300 pikseldeyse scrool işlemini gerçekleştir
+                                          Future.delayed(
+                                              Duration(milliseconds: 50), () {
+                                            _scrollController.animateTo(
+                                              _scrollController
+                                                  .position.maxScrollExtent,
+                                              curve: Curves.easeInOut,
+                                              duration:
+                                                  Duration(milliseconds: 200),
+                                            );
+                                          });
+                                        }
+                                      }
+                                      showModalBottomSheet(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Stack(
                                             children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Container(
-                                                  height: 7,
-                                                  width: 70,
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.black,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
+                                              Container(
+                                                height: 200,
+                                                width: double.infinity,
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.vertical(
+                                                          top: Radius.circular(
+                                                              20.0)),
                                                 ),
-                                              ),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  InkWell(
-                                                    onTap: () {
-                                                      Navigator.pop(context);
-                                                      Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                SendImagesGroup(
-                                                              snap: groupData,
-                                                              name: userData[
-                                                                      'name'] +
-                                                                  " " +
-                                                                  userData[
-                                                                      'surname'],
-                                                            ),
-                                                          ));
-                                                    },
-                                                    child: Padding(
+                                                child: Column(
+                                                  children: [
+                                                    Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                        top: 30,
-                                                        right: 15,
-                                                      ),
-                                                      child: Column(
-                                                        children: [
-                                                          Container(
-                                                            height: 80,
-                                                            width: 80,
-                                                            decoration: BoxDecoration(
-                                                                color:
-                                                                    Colors.blue,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            20)),
-                                                            child: const Icon(
-                                                              Iconsax.gallery,
-                                                              color:
-                                                                  Colors.white,
-                                                              size: 40,
-                                                            ),
-                                                          ),
-                                                          const Text(
-                                                            'Fotoğraf',
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .black,
-                                                                fontSize: 18),
-                                                          )
-                                                        ],
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Container(
+                                                        height: 7,
+                                                        width: 70,
+                                                        decoration: BoxDecoration(
+                                                            color: Colors.black,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        InkWell(
+                                                          onTap: () {
+                                                            Navigator.pop(
+                                                                context);
+                                                            Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          SendImagesGroup(
+                                                                    snap:
+                                                                        groupData,
+                                                                    name: userData[
+                                                                            'name'] +
+                                                                        " " +
+                                                                        userData[
+                                                                            'surname'],
+                                                                  ),
+                                                                ));
+                                                          },
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .only(
+                                                              top: 30,
+                                                              right: 15,
+                                                            ),
+                                                            child: Column(
+                                                              children: [
+                                                                Container(
+                                                                  height: 80,
+                                                                  width: 80,
+                                                                  decoration: BoxDecoration(
+                                                                      color: Colors
+                                                                          .blue,
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              20)),
+                                                                  child:
+                                                                      const Icon(
+                                                                    Iconsax
+                                                                        .gallery,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: 40,
+                                                                  ),
+                                                                ),
+                                                                const Text(
+                                                                  'Fotoğraf',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .black,
+                                                                      fontSize:
+                                                                          18),
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ],
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20.0)),
-                                  ),
-                                  isScrollControlled: true,
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.only(
-                                    top: 12, bottom: 12, right: 10),
-                                child: const Icon(
-                                  Iconsax.attach_circle,
-                                  size: 32,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                DateTime date = DateTime.now();
-                                String messageId = Uuid().v1();
-                                if (_textEditingController.text.isNotEmpty) {
-                                  try {
-                                    if (mounted) {
-                                      if (_scrollController.position.pixels >=
-                                          _scrollController
-                                                  .position.maxScrollExtent -
-                                              200) {
-                                        // Eğer son 300 pikseldeyse scrool işlemini gerçekleştir
-                                        Future.delayed(
-                                            Duration(milliseconds: 50), () {
-                                          _scrollController.animateTo(
-                                            _scrollController
-                                                .position.maxScrollExtent,
-                                            curve: Curves.easeInOut,
-                                            duration:
-                                                Duration(milliseconds: 200),
                                           );
+                                        },
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.vertical(
+                                              top: Radius.circular(20.0)),
+                                        ),
+                                        isScrollControlled: true,
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.only(
+                                          top: 12, bottom: 12, right: 10),
+                                      child: const Icon(
+                                        Iconsax.attach_circle,
+                                        size: 32,
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      DateTime date = DateTime.now();
+                                      String messageId = Uuid().v1();
+                                      if (_textEditingController
+                                          .text.isNotEmpty) {
+                                        try {
+                                          if (mounted) {
+                                            if (_scrollController
+                                                    .position.pixels >=
+                                                _scrollController.position
+                                                        .maxScrollExtent -
+                                                    200) {
+                                              // Eğer son 300 pikseldeyse scrool işlemini gerçekleştir
+                                              Future.delayed(
+                                                  Duration(milliseconds: 50),
+                                                  () {
+                                                _scrollController.animateTo(
+                                                  _scrollController
+                                                      .position.maxScrollExtent,
+                                                  curve: Curves.easeInOut,
+                                                  duration: Duration(
+                                                      milliseconds: 200),
+                                                );
+                                              });
+                                            }
+                                          }
+                                        } catch (e) {}
+                                        // Önce mevcut mesajları kopyalayın
+                                        var existingMessages =
+                                            List.from(message.values);
+
+                                        existingMessages.add({
+                                          'text': _textEditingController.text
+                                              .trim(),
+                                          'date': date,
+                                          'isSeen': [
+                                            FirebaseAuth
+                                                .instance.currentUser!.uid
+                                          ],
+                                          'senderId': FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                          'name': userData['name'] +
+                                              " " +
+                                              userData['surname'],
+                                          'messageId': messageId,
+                                          "sending": false,
                                         });
+                                        var newMessage = {
+                                          for (var i = 0;
+                                              i < existingMessages.length;
+                                              i++)
+                                            i.toString(): existingMessages[i],
+                                        };
+                                        GroupMessageBox.saveGroupMessage(
+                                            widget.groupId, newMessage);
+                                        FireStoreMethods().sendChanelMessage(
+                                            _textEditingController.text.trim(),
+                                            FirebaseAuth
+                                                .instance.currentUser!.uid,
+                                            date,
+                                            userData['name'] +
+                                                " " +
+                                                userData['surname'],
+                                            messageId,
+                                            widget.groupId,
+                                            widget.communityId);
+
+                                        _textEditingController.clear();
                                       }
-                                    }
-                                  } catch (e) {}
-                                  // Önce mevcut mesajları kopyalayın
-                                  var existingMessages =
-                                      List.from(message.values);
-
-                                  existingMessages.add({
-                                    'text': _textEditingController.text.trim(),
-                                    'date': date,
-                                    'isSeen': [
-                                      FirebaseAuth.instance.currentUser!.uid
-                                    ],
-                                    'senderId':
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                    'name': userData['name'] +
-                                        " " +
-                                        userData['surname'],
-                                    'messageId': messageId,
-                                    "sending": false,
-                                  });
-                                  var newMessage = {
-                                    for (var i = 0;
-                                        i < existingMessages.length;
-                                        i++)
-                                      i.toString(): existingMessages[i],
-                                  };
-                                  GroupMessageBox.saveGroupMessage(
-                                      widget.snap, newMessage);
-                                  FireStoreMethods().sendMessageGroup(
-                                      _textEditingController.text.trim(),
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                      date,
-                                      userData['name'] +
-                                          " " +
-                                          userData['surname'],
-                                      messageId,
-                                      widget.snap);
-
-                                  _textEditingController.clear();
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.only(
-                                    top: 12, bottom: 12, right: 10),
-                                child: const Icon(
-                                  Iconsax.send_1,
-                                  size: 30,
-                                ),
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.only(
+                                          top: 12, bottom: 12, right: 10),
+                                      child: const Icon(
+                                        Iconsax.send_1,
+                                        size: 30,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
+                        ),
+                        Offstage(
+                          offstage: !emojiShowing,
+                          child: SizedBox(
+                            height: 350,
+                            child: EmojiPicker(
+                              textEditingController: _textEditingController,
+                              onBackspacePressed: _onBackspacePressed,
+                              config: Config(
+                                checkPlatformCompatibility: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : InkWell(
+                      splashColor: Colors.transparent,
+                      onTap: () async {
+                        await FirebaseFirestore.instance
+                            .collection('Community')
+                            .doc(widget.communityId)
+                            .collection('Groups')
+                            .doc(groupData['groupId'])
+                            .update({
+                          'members': FieldValue.arrayUnion(
+                              [FirebaseAuth.instance.currentUser!.uid])
+                        });
+                        await getData(); // Verileri güncelle
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        width: double.infinity,
+                        height: 50,
+                        color: const Color.fromRGBO(0, 86, 255, 1),
+                        child: const Center(
+                          child: Text(
+                            'Katıl',
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Offstage(
-                    offstage: !emojiShowing,
-                    child: SizedBox(
-                      height: 350,
-                      child: EmojiPicker(
-                        textEditingController: _textEditingController,
-                        onBackspacePressed: _onBackspacePressed,
-                        config: Config(
-                          checkPlatformCompatibility: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
     );
   }

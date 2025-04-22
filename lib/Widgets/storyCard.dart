@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Pages/StoryPage.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 
 class storyCard extends StatefulWidget {
   const storyCard(
@@ -74,19 +75,33 @@ class _storyCardState extends State<storyCard> {
         padding: const EdgeInsets.only(top: 80, left: 15),
         child: Column(
           children: [
-            Container(
-              width: 85,
-              height: 85,
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: NetworkImage(profImage), fit: BoxFit.cover),
-                  border: Border.all(
-                      color: widget.isSeen == "true"
-                          ? Colors.white
-                          : const Color.fromRGBO(0, 86, 255, 1),
-                      width: 3),
-                  borderRadius: BorderRadius.circular(85 * 0.4)),
-            ),
+            if (profImage.isNotEmpty)
+              Container(
+                width: 85,
+                height: 85,
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: NetworkImage(profImage), fit: BoxFit.cover),
+                    border: Border.all(
+                        color: widget.isSeen == "true"
+                            ? Colors.white
+                            : const Color.fromRGBO(0, 86, 255, 1),
+                        width: 3),
+                    borderRadius: BorderRadius.circular(85 * 0.4)),
+              )
+            else
+              Container(
+                height: 85,
+                width: 85,
+                decoration: BoxDecoration(
+                    color: const Color.fromRGBO(0, 86, 255, 1),
+                    borderRadius: BorderRadius.circular(30)),
+                child: const Icon(
+                  Iconsax.people,
+                  color: Colors.white,
+                  size: 60,
+                ),
+              ),
             Container(
               padding: const EdgeInsets.only(top: 7),
               width: 120,

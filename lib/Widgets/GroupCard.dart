@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eppser/Database/Groups.dart';
 import 'package:eppser/Database/GroupsMessage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +8,9 @@ import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class GroupCard extends StatefulWidget {
-  final snap;
-  const GroupCard({super.key, this.snap});
+  final groupId;
+  final communityId;
+  const GroupCard({super.key, this.groupId, this.communityId});
 
   @override
   State<GroupCard> createState() => _GroupCardState();
@@ -34,8 +34,10 @@ class _GroupCardState extends State<GroupCard> {
     });
     try {
       var Snap = await FirebaseFirestore.instance
+          .collection('Community')
+          .doc(widget.communityId)
           .collection('Groups')
-          .doc(widget.snap)
+          .doc(widget.groupId)
           .get();
 
       groupData = Snap.data();
@@ -164,7 +166,6 @@ class _GroupCardState extends State<GroupCard> {
                 if (box.values.isEmpty) {
                   return Container(); // ...veya uygun bir placeholder widget
                 }
-                final lastElement = box.values.last;
                 dataHive();
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

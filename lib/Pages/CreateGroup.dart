@@ -9,7 +9,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 
 class CreateGroup extends StatefulWidget {
-  const CreateGroup({super.key});
+  final String communityId;
+  const CreateGroup({super.key, required this.communityId});
 
   @override
   State<CreateGroup> createState() => _CreateGroupState();
@@ -197,9 +198,10 @@ class _CreateGroupState extends State<CreateGroup> {
                       isLoading = true;
                     });
                     await FireStoreMethods()
-                        .createGroup(
+                        .createCommunityGroup(
                             _nameController.text.trim(),
                             FirebaseAuth.instance.currentUser!.uid,
+                            widget.communityId,
                             [FirebaseAuth.instance.currentUser!.uid],
                             [FirebaseAuth.instance.currentUser!.uid],
                             _file,

@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Database/Users.dart';
 import 'package:eppser/Settings/Settings.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,17 +79,9 @@ class _ProfileState extends State<Profile> {
                   child: userData['profImage'] != null
                       ? ClipRRect(
                           child: CachedNetworkImage(
-                            placeholder: (context, url) => Container(
-                              height: 70,
-                              width: 70,
-                              decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(0, 86, 255, 1),
-                                  borderRadius: BorderRadius.circular(30)),
-                              child: const Icon(
-                                Iconsax.user,
-                                color: Colors.white,
-                                size: 50,
-                              ),
+                            placeholder: (context, url) =>
+                                CircularProgressIndicator(
+                              color: Colors.white,
                             ),
                             filterQuality: FilterQuality.low,
                             placeholderFadeInDuration:
@@ -257,7 +250,7 @@ class _ProfileState extends State<Profile> {
                     ],
                   ),
                 ),
-                if (userData['uid'] != widget.uid)
+                if (userData['uid'] != FirebaseAuth.instance.currentUser!.uid)
                   Positioned(
                     top: 30,
                     left: 10,
@@ -275,7 +268,7 @@ class _ProfileState extends State<Profile> {
                           )),
                     ),
                   ),
-                if (userData['uid'] == widget.uid)
+                if (userData['uid'] == FirebaseAuth.instance.currentUser!.uid)
                   Positioned(
                     top: 30,
                     right: 10,
@@ -299,30 +292,6 @@ class _ProfileState extends State<Profile> {
                           )),
                     ),
                   ),
-                if (userData['uid'] != widget.uid)
-                  Positioned(
-                    top: 30,
-                    right: 10,
-                    child: InkWell(
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SettingsPage(
-                              uid: widget.uid,
-                            ),
-                          )),
-                      child: Container(
-                          height: 45,
-                          width: 45,
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(18)),
-                          child: const Icon(
-                            Iconsax.more,
-                            size: 34,
-                          )),
-                    ),
-                  )
               ],
             ),
           );

@@ -64,17 +64,29 @@ class _userCard3State extends State<userCard3> {
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  child: isLoading
-                      ? const SizedBox()
-                      : Image.network(
+                profImage.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(60 * 0.4)),
+                        child: Image.network(
                           profImage,
                           height: 60,
                           width: 60,
                           fit: BoxFit.cover,
                         ),
-                ),
+                      )
+                    : Container(
+                        height: 60,
+                        width: 60,
+                        decoration: BoxDecoration(
+                            color: const Color.fromRGBO(0, 86, 255, 1),
+                            borderRadius: BorderRadius.circular(60 * 0.4)),
+                        child: const Icon(
+                          Iconsax.people,
+                          color: Colors.white,
+                          size: 50,
+                        ),
+                      ),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 15),

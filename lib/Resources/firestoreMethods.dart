@@ -602,10 +602,10 @@ class FireStoreMethods {
   }
 
   Future<void> sendChanelMessage(String text, String senderId, DateTime date,
-      String name, String messageId, String groupId, String chanelId) async {
+      String name, String messageId, String groupId, String community) async {
     _firestore
-        .collection('Chanels')
-        .doc(chanelId)
+        .collection('Community')
+        .doc(community)
         .collection('Groups')
         .doc(groupId)
         .collection('Messages')
@@ -619,13 +619,6 @@ class FireStoreMethods {
       'messageId': messageId,
       "sending": false
     });
-
-    _firestore
-        .collection('Chanels')
-        .doc(chanelId)
-        .collection('Groups')
-        .doc(groupId)
-        .update({'lastMessageTime': DateTime.now()});
   }
 
   Future<void> createGroup(
@@ -699,21 +692,21 @@ class FireStoreMethods {
     }
   }
 
-  Future<void> editChanelGroup(
+  Future<void> editCommunityGroup(
     String name,
     String groupId,
-    String chanelId,
+    String communityId,
     Uint8List? file,
     String about,
   ) async {
     try {
       if (file != null) {
         String photoUrl = await StorageMethods()
-            .uploadImageToStorage('Chanels', chanelId, file, true);
+            .uploadImageToStorage('Community', communityId, file, true);
 
         _firestore
-            .collection('Chanels')
-            .doc(chanelId)
+            .collection('Community')
+            .doc(communityId)
             .collection('Groups')
             .doc(groupId)
             .update({
@@ -723,8 +716,8 @@ class FireStoreMethods {
         });
       } else {
         _firestore
-            .collection('Chanels')
-            .doc(chanelId)
+            .collection('Community')
+            .doc(communityId)
             .collection('Groups')
             .doc(groupId)
             .update({
@@ -737,24 +730,24 @@ class FireStoreMethods {
     }
   }
 
-  Future<void> editChanel(
+  Future<void> editCommunity(
     String name,
-    String chanelId,
+    String communityId,
     Uint8List? file,
     String about,
   ) async {
     try {
       if (file != null) {
         String photoUrl = await StorageMethods()
-            .uploadImageToStorage('Chanels', chanelId, file, true);
+            .uploadImageToStorage('Community', communityId, file, true);
 
-        _firestore.collection('Chanels').doc(chanelId).update({
+        _firestore.collection('Community').doc(communityId).update({
           'name': name,
           'photoUrl': photoUrl,
           'about': about,
         });
       } else {
-        _firestore.collection('Chanels').doc(chanelId).update({
+        _firestore.collection('Community').doc(communityId).update({
           'name': name,
           'about': about,
         });
@@ -764,7 +757,7 @@ class FireStoreMethods {
     }
   }
 
-  Future<void> createChanel(
+  Future<void> createCommunity(
     String name,
     String uid,
     List admins,
@@ -774,69 +767,67 @@ class FireStoreMethods {
   ) async {
     try {
       if (file != null) {
-        String chanelId = const Uuid().v1();
+        String communityId = const Uuid().v1();
         String photoUrl = await StorageMethods()
-            .uploadImageToStorage('Chanels', chanelId, file, true);
+            .uploadImageToStorage('Community', communityId, file, true);
 
         String groupId = const Uuid().v1();
-        _firestore.collection('Chanels').doc(chanelId).set({
+        _firestore.collection('Community').doc(communityId).set({
           'name': name,
+          'approved': false,
           'uid': uid,
-          'chanelId': chanelId,
+          'communityId': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': photoUrl,
           'about': about,
           'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
         });
         _firestore
-            .collection('Chanels')
-            .doc(chanelId)
+            .collection('Community')
+            .doc(communityId)
             .collection('Groups')
             .doc(groupId)
             .set({
-          'name': name,
+          'name': "Duyurular",
           'uid': uid,
           'groupId': groupId,
-          'chanelId': chanelId,
+          'community': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': photoUrl,
           'about': about,
           'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
         });
       } else {
-        String chanelId = const Uuid().v1();
+        String communityId = const Uuid().v1();
         String groupId = const Uuid().v1();
-        _firestore.collection('Chanels').doc(chanelId).set({
+        _firestore.collection('Community').doc(communityId).set({
           'name': name,
+          'approved': false,
           'uid': uid,
-          'chanelId': chanelId,
+          'communityId': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': null,
           'about': about,
           'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
         });
         _firestore
-            .collection('Chanels')
-            .doc(chanelId)
+            .collection('Community')
+            .doc(communityId)
             .collection('Groups')
             .doc(groupId)
             .set({
-          'name': name,
+          'name': "Duyurular",
           'uid': uid,
           'groupId': groupId,
-          'chanelId': chanelId,
+          'communityId': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': null,
           'about': about,
           'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
         });
       }
     } catch (e) {
@@ -844,10 +835,10 @@ class FireStoreMethods {
     }
   }
 
-  Future<void> createChanelGroup(
+  Future<void> createCommunityGroup(
     String name,
     String uid,
-    String chanelId,
+    String communityId,
     List admins,
     List members,
     Uint8List? file,
@@ -856,46 +847,44 @@ class FireStoreMethods {
     try {
       if (file != null) {
         String photoUrl = await StorageMethods()
-            .uploadImageToStorage('Chanels', chanelId, file, true);
+            .uploadImageToStorage('Community', communityId, file, true);
 
         String groupId = const Uuid().v1();
 
         _firestore
-            .collection('Chanels')
-            .doc(chanelId)
+            .collection('Community')
+            .doc(communityId)
             .collection('Groups')
             .doc(groupId)
             .set({
           'name': name,
           'uid': uid,
           'groupId': groupId,
-          'chanelId': chanelId,
+          'community': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': photoUrl,
           'about': about,
           'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
         });
       } else {
         String groupId = const Uuid().v1();
 
         _firestore
-            .collection('Chanels')
-            .doc(chanelId)
+            .collection('Community')
+            .doc(communityId)
             .collection('Groups')
             .doc(groupId)
             .set({
           'name': name,
           'uid': uid,
           'groupId': groupId,
-          'chanelId': chanelId,
+          'community': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': null,
           'about': about,
           'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
         });
       }
     } catch (e) {

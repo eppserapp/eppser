@@ -78,7 +78,7 @@ class _bottomBarState extends State<bottomBar> {
                   text: 'Timeline',
                 ),
                 GButton(
-                  icon: Iconsax.play_circle,
+                  icon: Iconsax.messages_2,
                   text: 'Video',
                 ),
                 GButton(
