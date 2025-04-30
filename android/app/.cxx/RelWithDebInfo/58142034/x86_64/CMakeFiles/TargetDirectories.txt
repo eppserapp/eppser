@@ -1,0 +1,2 @@
+C:/Users/HUAWEI/Desktop/eppser/android/app/.cxx/RelWithDebInfo/58142034/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/HUAWEI/Desktop/eppser/android/app/.cxx/RelWithDebInfo/58142034/x86_64/CMakeFiles/rebuild_cache.dir

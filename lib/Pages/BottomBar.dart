@@ -1,8 +1,7 @@
 import 'package:eppser/Pages/Home.dart';
-import 'package:eppser/Pages/LandingPage.dart';
+import 'package:eppser/Pages/MessagePage.dart';
 import 'package:eppser/Pages/Profile.dart';
 import 'package:eppser/Pages/Timeline.dart';
-import 'package:eppser/Pages/VideoPage.dart';
 import 'package:eppser/Pages/WalletPage.dart';
 import 'package:eppser/Providers/themeProvider.dart';
 import 'package:eppser/Theme/Theme.dart';
@@ -32,7 +31,7 @@ class _bottomBarState extends State<bottomBar> {
         children: <Widget>[
           const Home(),
           Timeline(),
-          const VideoHome(),
+          MessagePage(),
           const WalletPage(),
           Profile(
             uid: FirebaseAuth.instance.currentUser!.uid,
@@ -79,7 +78,7 @@ class _bottomBarState extends State<bottomBar> {
                 ),
                 GButton(
                   icon: Iconsax.messages_2,
-                  text: 'Video',
+                  text: 'Mesajlar',
                 ),
                 GButton(
                   icon: Iconsax.empty_wallet,

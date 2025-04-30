@@ -78,9 +78,11 @@ class _CreateCommunityState extends State<CreateCommunity> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Topluluk Oluştur",
-        ),
+        title: Text("Topluluklarım",
+            style: GoogleFonts.signika(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontSize: 24,
+            )),
         centerTitle: true,
         backgroundColor: Colors.black,
         elevation: 0,
@@ -88,34 +90,12 @@ class _CreateCommunityState extends State<CreateCommunity> {
       body: Column(
         children: [
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 10,
-                ),
-                Icon(
-                  Iconsax.profile_2user,
-                  size: 28,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-                SizedBox(
-                  width: 5,
-                ),
-                Text("Topluluklar",
-                    style: GoogleFonts.signika(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 24,
-                    )),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
           Expanded(
             child: StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('Community')
+                  .where('admins',
+                      arrayContains: FirebaseAuth.instance.currentUser!.uid)
                   .snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {

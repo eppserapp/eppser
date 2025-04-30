@@ -40,9 +40,6 @@ void main() async {
   Hive.registerAdapter(TimestampAdapter());
   await Hive.openBox('groupBox');
   await Hive.openBox('groupMessageBox');
-  await Hive.openBox('chanelBox');
-  await Hive.openBox('chanelGroupBox');
-  await Hive.openBox('chanelMessageBox');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

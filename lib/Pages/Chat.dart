@@ -228,27 +228,43 @@ class _ChatState extends State<Chat> {
                               Padding(
                                 padding:
                                     const EdgeInsets.only(left: 40, right: 10),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: CachedNetworkImage(
-                                      filterQuality: FilterQuality.low,
-                                      placeholderFadeInDuration:
-                                          const Duration(microseconds: 1),
-                                      fadeOutDuration:
-                                          const Duration(microseconds: 1),
-                                      fadeInDuration:
-                                          const Duration(milliseconds: 1),
-                                      imageUrl: userData['profImage'],
-                                      fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) =>
-                                          const Icon(Icons.error,
-                                              color: Colors.black),
-                                    ),
-                                  ),
-                                ),
+                                child: userData['profImage'] != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(50),
+                                        child: SizedBox(
+                                          height: 40,
+                                          width: 40,
+                                          child: CachedNetworkImage(
+                                            filterQuality: FilterQuality.low,
+                                            placeholderFadeInDuration:
+                                                const Duration(microseconds: 1),
+                                            fadeOutDuration:
+                                                const Duration(microseconds: 1),
+                                            fadeInDuration:
+                                                const Duration(milliseconds: 1),
+                                            imageUrl: userData['profImage'],
+                                            fit: BoxFit.cover,
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error,
+                                                        color: Colors.black),
+                                          ),
+                                        ),
+                                      )
+                                    : Container(
+                                        height: 40,
+                                        width: 40,
+                                        decoration: BoxDecoration(
+                                            color: const Color.fromRGBO(
+                                                0, 86, 255, 1),
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: const Icon(
+                                          Iconsax.user,
+                                          color: Colors.white,
+                                          size: 30,
+                                        ),
+                                      ),
                               ),
                             ],
                           ),
@@ -279,11 +295,11 @@ class _ChatState extends State<Chat> {
                                       fontWeight: FontWeight.w500),
                                 ),
                               ),
-                              const Text(
-                                'Çevrimiçi',
-                                style: TextStyle(
-                                    color: Colors.green, fontSize: 12),
-                              )
+                              // const Text(
+                              //   'Çevrimiçi',
+                              //   style: TextStyle(
+                              //       color: Colors.green, fontSize: 12),
+                              // )
                             ],
                           ),
                         ),
@@ -480,12 +496,19 @@ class _ChatState extends State<Chat> {
                             return Column(
                               children: [
                                 if (index == 0 ||
-                                    DateFormat.yMMMMd('tr_TR').format(
-                                            message[index.toString()]
-                                                ['date']) !=
-                                        DateFormat.yMMMMd('tr_TR').format(
-                                            message[(index - 1).toString()]
-                                                ['date']))
+                                    ((message[index]['date'] is Timestamp
+                                            ? DateFormat.yMMMMd('tr_TR').format(
+                                                (message[index]['date'] as Timestamp)
+                                                    .toDate())
+                                            : DateFormat.yMMMMd('tr_TR').format(
+                                                message[index]['date'])) !=
+                                        (message[(index - 1)]['date'] is Timestamp
+                                            ? DateFormat.yMMMMd('tr_TR').format(
+                                                (message[(index - 1)]['date']
+                                                        as Timestamp)
+                                                    .toDate())
+                                            : DateFormat.yMMMMd('tr_TR').format(
+                                                message[(index - 1)]['date']))))
                                   Center(
                                     child: Container(
                                       constraints:
@@ -499,8 +522,11 @@ class _ChatState extends State<Chat> {
                                           left: 5, right: 5),
                                       height: 25,
                                       child: Text(
-                                        getTimeAgo(
-                                            message[index.toString()]['date']),
+                                        message[index]['date'] is Timestamp
+                                            ? getTimeAgo(
+                                                message[index]['date'].toDate())
+                                            : getTimeAgo(
+                                                message[index]['date']),
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
                                             color: Colors.white,
@@ -510,14 +536,13 @@ class _ChatState extends State<Chat> {
                                     ),
                                   ),
                                 if (index - 1 > 0)
-                                  if (message[(index - 1).toString()]
-                                          ['senderId'] !=
-                                      message[index.toString()]['senderId'])
+                                  if (message[(index - 1)]['senderId'] !=
+                                      message[index]['senderId'])
                                     const SizedBox(
                                       height: 10,
                                     ),
-                                if (message[index.toString()] != null)
-                                  if (message[index.toString()]['senderId'] ==
+                                if (message[index] != null)
+                                  if (message[index]['senderId'] ==
                                       FirebaseAuth.instance.currentUser!.uid)
                                     FocusedMenuHolder(
                                       menuWidth:
@@ -607,8 +632,7 @@ class _ChatState extends State<Chat> {
                                                   CrossAxisAlignment.end,
                                               children: [
                                                 Text(
-                                                  message[index.toString()]
-                                                      ['text'],
+                                                  message[index]['text'],
                                                   style: const TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 16),
@@ -621,19 +645,22 @@ class _ChatState extends State<Chat> {
                                                   children: [
                                                     Text(
                                                       DateFormat.Hm('tr_TR')
-                                                          .format(message[index
-                                                                  .toString()]
-                                                              ['date']),
+                                                          .format((message[
+                                                                          index]
+                                                                      ['date']
+                                                                  is Timestamp
+                                                              ? message[index]
+                                                                      ['date']
+                                                                  .toDate()
+                                                              : message[index]
+                                                                  ['date'])),
                                                       style: const TextStyle(
                                                         fontSize: 10,
                                                         color: Colors.white,
                                                       ),
                                                     ),
-                                                    message[index.toString()]
-                                                                ['isSeen'] &&
-                                                            message[index
-                                                                        .toString()]
-                                                                    [
+                                                    message[index]['isSeen'] &&
+                                                            message[index][
                                                                     'sending'] ==
                                                                 false
                                                         ? const Padding(
@@ -675,8 +702,7 @@ class _ChatState extends State<Chat> {
                                                               ],
                                                             ),
                                                           )
-                                                        : message[index.toString()]
-                                                                    [
+                                                        : message[index][
                                                                     'sending'] ==
                                                                 true
                                                             ? const Padding(
@@ -732,8 +758,8 @@ class _ChatState extends State<Chat> {
                                         ),
                                       ),
                                     ),
-                                if (message[index.toString()] != null)
-                                  if (message[index.toString()]['recieverId'] ==
+                                if (message[index] != null)
+                                  if (message[index]['receiverId'] ==
                                       FirebaseAuth.instance.currentUser!.uid)
                                     FocusedMenuHolder(
                                       menuWidth:
@@ -822,16 +848,14 @@ class _ChatState extends State<Chat> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  message[index.toString()]
-                                                      ['text'],
+                                                  message[index]['text'],
                                                   style: const TextStyle(
                                                       color: Colors.black,
                                                       fontSize: 16),
                                                 ),
                                                 Text(
                                                   DateFormat.Hm('tr_TR').format(
-                                                      message[index.toString()]
-                                                          ['date']),
+                                                      message[index]['date']),
                                                   style: TextStyle(
                                                     fontSize: 10,
                                                     color: Colors.grey[600],
@@ -944,16 +968,18 @@ class _ChatState extends State<Chat> {
                                                   .position.maxScrollExtent -
                                               200) {
                                         // Eğer son 300 pikseldeyse scrool işlemini gerçekleştir
-                                        Future.delayed(
-                                            Duration(milliseconds: 50), () {
-                                          _scrollController.animateTo(
-                                            _scrollController
-                                                .position.maxScrollExtent,
-                                            curve: Curves.easeInOut,
-                                            duration:
-                                                Duration(milliseconds: 200),
-                                          );
-                                        });
+                                        if (mounted) {
+                                          Future.delayed(
+                                              Duration(milliseconds: 50), () {
+                                            _scrollController.animateTo(
+                                              _scrollController
+                                                  .position.maxScrollExtent,
+                                              curve: Curves.easeInOut,
+                                              duration:
+                                                  Duration(milliseconds: 200),
+                                            );
+                                          });
+                                        }
                                       }
                                     }
 
@@ -966,7 +992,7 @@ class _ChatState extends State<Chat> {
                                           _textEditingController.text.trim(),
                                       'date': date,
                                       'isSeen': false,
-                                      'recieverId': userData['uid'],
+                                      'receiverId': userData['uid'],
                                       'senderId': FirebaseAuth
                                           .instance.currentUser!.uid,
                                       'messageId': messageId,
@@ -976,7 +1002,7 @@ class _ChatState extends State<Chat> {
                                       for (var i = 0;
                                           i < existingMessages.length;
                                           i++)
-                                        i.toString(): existingMessages[i],
+                                        i: existingMessages[i],
                                     };
                                     MessageBox.saveMessageData(
                                         userData['uid'], newMessage);

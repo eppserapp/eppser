@@ -21,9 +21,6 @@ class ProfileSettings extends StatefulWidget {
 class _ProfileSettingsState extends State<ProfileSettings> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _passwordController2 = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   bool _loading = false;
   Uint8List? _file;
@@ -34,43 +31,7 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     _userNameController.dispose();
     _nameController.dispose();
     _surnameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _passwordController2.dispose();
     super.dispose();
-  }
-
-  Future<void> changeEmail() async {
-    try {
-      await FirebaseAuth.instance.currentUser
-          ?.updateEmail(_emailController.text.trim());
-      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-
-      setState(() {
-        showSnackBar(context,
-            'E-posta adresi başarıyla güncellendi. Lütfen doğrulayın.');
-      });
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        showSnackBar(context, 'Hata oluştu: ${e.message}');
-      });
-    }
-  }
-
-  Future<void> checkIfEmailExists() async {
-    try {
-      final email = _emailController.text.trim();
-      final signInMethods =
-          await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
-
-      if (signInMethods.isNotEmpty) {
-        showSnackBar(context, 'Bu e-posta zaten kullanılıyor.');
-      } else {
-        changeEmail().whenComplete(() => showSnackBar(context, "Güncellendi"));
-      }
-    } on FirebaseAuthException catch (e) {
-      showSnackBar(context, 'Hata oluştu: ${e.message}');
-    }
   }
 
   _selectImage(BuildContext parentContext) async {
@@ -329,91 +290,6 @@ class _ProfileSettingsState extends State<ProfileSettings> {
                   )),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(5),
-            child: TextField(
-              cursorColor: Theme.of(context).textTheme.bodyMedium!.color,
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                  prefixIcon: Icon(
-                    Iconsax.sms,
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(
-                        color: Color.fromRGBO(0, 86, 255, 1), width: 2.0),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(18)),
-                    borderSide: BorderSide(
-                      color: Color.fromRGBO(245, 247, 249, 1),
-                      width: 2,
-                    ),
-                  ),
-                  labelText: 'E Mail',
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  )),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(5),
-            child: TextField(
-              cursorColor: Theme.of(context).textTheme.bodyMedium!.color,
-              controller: _passwordController,
-              decoration: InputDecoration(
-                  prefixIcon: Icon(
-                    Iconsax.password_check,
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(
-                        color: Color.fromRGBO(0, 86, 255, 1), width: 2.0),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(18)),
-                    borderSide: BorderSide(
-                      color: Color.fromRGBO(245, 247, 249, 1),
-                      width: 2,
-                    ),
-                  ),
-                  labelText: 'Şifre Değiştir',
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  )),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(5),
-            child: TextField(
-              cursorColor: Theme.of(context).textTheme.bodyMedium!.color,
-              controller: _passwordController2,
-              decoration: InputDecoration(
-                  prefixIcon: Icon(
-                    Iconsax.password_check,
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(
-                        color: Color.fromRGBO(0, 86, 255, 1), width: 2.0),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(18)),
-                    borderSide: BorderSide(
-                      color: Color.fromRGBO(245, 247, 249, 1),
-                      width: 2,
-                    ),
-                  ),
-                  labelText: 'Şifre Tekrar',
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  )),
-            ),
-          ),
           const SizedBox(
             height: 10,
           ),
@@ -465,29 +341,7 @@ class _ProfileSettingsState extends State<ProfileSettings> {
                             }));
                     showSnackBar(context, "Güncellendi");
                   }
-                  if (_passwordController.text.isNotEmpty &&
-                      _passwordController2.text.isNotEmpty) {
-                    await FirebaseFirestore.instance
-                        .collection('Passwords')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({
-                      'password': _passwordController.text.trim()
-                    }).whenComplete(() => setState(() {
-                              _loading = false;
-                            }));
-                    showSnackBar(context, "Güncellendi");
-                  } else if (_passwordController.text.length > 6) {
-                    showSnackBar(context, 'Şifre en az 6 karakter olmalıdır!');
-                  }
-                  if (_emailController.text.isNotEmpty) {
-                    checkIfEmailExists().whenComplete(
-                      () {
-                        setState(() {
-                          _loading = false;
-                        });
-                      },
-                    );
-                  }
+
                   if (_file != null) {
                     return postImage();
                   }

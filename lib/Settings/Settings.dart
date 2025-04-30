@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eppser/Database/Users.dart';
 import 'package:eppser/Pages/LandingPage.dart';
 import 'package:eppser/Pages/ProfileSettings.dart';
 import 'package:eppser/Utils/Utils.dart';
@@ -208,39 +207,80 @@ class _SettingsPageState extends State<SettingsPage> {
             height: 10,
           ),
           ListTile(
-            title: const Text('Gizlilik'),
+            title: Text(
+              'Gizlilik',
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  fontSize: 20),
+            ),
             onTap: () {},
-            leading: const Icon(Iconsax.security_user),
+            leading: const Icon(Iconsax.security_user,
+                color: Color.fromRGBO(0, 86, 255, 1), size: 30),
           ),
           ListTile(
-            title: const Text('Premium'),
+            title: Text(
+              'Premium',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 20,
+              ),
+            ),
             onTap: () {},
-            leading: const Icon(Iconsax.crown_1),
+            leading: const Icon(Iconsax.crown_1,
+                color: Color.fromRGBO(0, 86, 255, 1), size: 30),
           ),
           ListTile(
-            title: const Text('Sohbetler'),
+            title: Text(
+              'Sohbetler',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 20,
+              ),
+            ),
             onTap: () {},
-            leading: const Icon(Iconsax.messages_2),
+            leading: const Icon(Iconsax.messages_2,
+                color: Color.fromRGBO(0, 86, 255, 1), size: 30),
           ),
           ListTile(
-            title: const Text('Bildirimler'),
+            title: Text(
+              'Bildirimler',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 20,
+              ),
+            ),
             onTap: () {},
-            leading: const Icon(Iconsax.notification),
+            leading: const Icon(Iconsax.notification,
+                color: Color.fromRGBO(0, 86, 255, 1), size: 30),
           ),
           ListTile(
-            title: const Text('Depolama Ve Veriler'),
+            title: Text(
+              'Depolama Ve Veriler',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 20,
+              ),
+            ),
             onTap: () {},
-            leading: const Icon(Iconsax.graph),
+            leading: const Icon(Iconsax.graph,
+                color: Color.fromRGBO(0, 86, 255, 1), size: 30),
           ),
           ListTile(
-            title: const Text('Uygulama Dili'),
+            title: Text(
+              'Uygulama Dili',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 20,
+              ),
+            ),
             onTap: () {},
-            leading: const Icon(Iconsax.language_circle),
+            leading: const Icon(Iconsax.language_circle,
+                color: Color.fromRGBO(0, 86, 255, 1), size: 30),
           ),
           ListTile(
             title: const Text(
               'Çıkış Yap',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Colors.red, fontSize: 20),
             ),
             onTap: () async {
               // final prefs = await SharedPreferences.getInstance();
@@ -264,6 +304,7 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(
               Iconsax.user,
               color: Colors.red,
+              size: 30,
             ),
           ),
         ],

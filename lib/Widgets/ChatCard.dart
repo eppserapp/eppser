@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -170,7 +171,7 @@ class _ChatCardState extends State<ChatCard> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: userData['profimage'] != null
+                          child: userData['profImage'] != null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(30),
                                   child: SizedBox(
@@ -183,8 +184,8 @@ class _ChatCardState extends State<ChatCard> {
                                         decoration: BoxDecoration(
                                             color: const Color.fromRGBO(
                                                 0, 86, 255, 1),
-                                            borderRadius:
-                                                BorderRadius.circular(30)),
+                                            borderRadius: BorderRadius.circular(
+                                                70 * 0.4)),
                                         child: const Icon(
                                           Iconsax.user,
                                           color: Colors.white,
@@ -198,7 +199,7 @@ class _ChatCardState extends State<ChatCard> {
                                           const Duration(microseconds: 1),
                                       fadeInDuration:
                                           const Duration(milliseconds: 1),
-                                      imageUrl: userData['profimage'],
+                                      imageUrl: userData['profImage'],
                                       fit: BoxFit.cover,
                                       errorWidget: (context, url, error) =>
                                           const Icon(Icons.error,
@@ -212,7 +213,8 @@ class _ChatCardState extends State<ChatCard> {
                                   decoration: BoxDecoration(
                                       color:
                                           const Color.fromRGBO(0, 86, 255, 1),
-                                      borderRadius: BorderRadius.circular(30)),
+                                      borderRadius:
+                                          BorderRadius.circular(70 * 0.4)),
                                   child: const Icon(
                                     Iconsax.user,
                                     color: Colors.white,
@@ -415,7 +417,13 @@ class _ChatCardState extends State<ChatCard> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 3),
                           child: Text(
-                            getTimeAgo(message.values.last['date']),
+                            (() {
+                              final dateValue = message.values.last['date'];
+                              final dateTime = dateValue is Timestamp
+                                  ? dateValue.toDate()
+                                  : dateValue;
+                              return getTimeAgo(dateTime);
+                            }()),
                             style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
@@ -425,7 +433,7 @@ class _ChatCardState extends State<ChatCard> {
                                 fontWeight: FontWeight.w500),
                           ),
                         ),
-                        if (message.values.last['date'] != null)
+                        if (message.values.last != null)
                           if (message.values
                                   .where((message) =>
                                       message['isSeen'] == false &&

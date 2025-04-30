@@ -1,7 +1,10 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eppser/Database/Users.dart';
+import 'package:eppser/Pages/Chat.dart';
+import 'package:eppser/Pages/StoryPage.dart';
+import 'package:eppser/Pages/users.dart';
+import 'package:eppser/Resources/firestoreMethods.dart';
 import 'package:eppser/Settings/Settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import '../Utils/Utils.dart';
 
 class Profile extends StatefulWidget {
@@ -21,6 +25,9 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   var userData = {};
   bool isLoading = false;
+  int followers = 0;
+  int following = 0;
+  bool isFollowing = false;
   bool tick = false;
   var data = {};
 
@@ -35,16 +42,32 @@ class _ProfileState extends State<Profile> {
       isLoading = true;
     });
     try {
-      var snap = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
+          .collection('Story')
+          .where('uid', isEqualTo: widget.uid)
+          .get()
+          .then((value) => value.docs.forEach((element) {
+                data.addAll(element.data());
+              }));
+      FirebaseFirestore.instance
           .collection('Users')
           .doc(widget.uid)
-          .get();
-      if (snap.exists) {
-        setState(() {
-          userData = snap.data()!;
-          tick = userData['tick'] ?? false;
-        });
-      }
+          .snapshots()
+          .listen((snap) {
+        if (snap.exists) {
+          setState(() {
+            userData = snap.data()!;
+            followers = int.parse(NumberFormat.compact()
+                .format(snap.data()!['followers'].length));
+            following = int.parse(NumberFormat.compact()
+                .format(snap.data()!['following'].length));
+            tick = userData['tick'] ?? false;
+            isFollowing = snap
+                .data()!['followers']
+                .contains(FirebaseAuth.instance.currentUser!.uid);
+          });
+        }
+      });
     } catch (e) {
       showSnackBar(
         context,
@@ -79,10 +102,6 @@ class _ProfileState extends State<Profile> {
                   child: userData['profImage'] != null
                       ? ClipRRect(
                           child: CachedNetworkImage(
-                            placeholder: (context, url) =>
-                                CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
                             filterQuality: FilterQuality.low,
                             placeholderFadeInDuration:
                                 const Duration(microseconds: 1),
@@ -247,6 +266,98 @@ class _ProfileState extends State<Profile> {
                               ),
                             )
                           : const SizedBox(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => usersPage(
+                                            snap: widget.uid,
+                                          )));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 10, bottom: 5, top: 10),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  buildStatColumn(following, "Takip"),
+                                  buildStatColumn(followers, "Takipçi"),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              userData['uid'] !=
+                                      FirebaseAuth.instance.currentUser!.uid
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: ClipRRect(
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(50 * 0.4)),
+                                          child: Container(
+                                            width: 50,
+                                            height: 50,
+                                            color: Colors.black,
+                                            child: IconButton(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            Chat(
+                                                              snap: userData[
+                                                                  'uid'],
+                                                            )));
+                                              },
+                                              icon: const Icon(
+                                                Iconsax.messages_2,
+                                                color: Colors.white,
+                                                size: 34,
+                                              ),
+                                            ),
+                                          )),
+                                    )
+                                  : const SizedBox(),
+                              data['postUrl'] == null
+                                  ? const SizedBox()
+                                  : Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: ClipRRect(
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(50 * 0.4)),
+                                          child: Container(
+                                            width: 50,
+                                            height: 50,
+                                            color: Colors.black,
+                                            child: IconButton(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            StoryPage(
+                                                              uid: widget.uid,
+                                                            )));
+                                              },
+                                              icon: const Icon(
+                                                Iconsax.story,
+                                                color: Colors.white,
+                                                size: 34,
+                                              ),
+                                            ),
+                                          )),
+                                    )
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -257,17 +368,67 @@ class _ProfileState extends State<Profile> {
                     child: InkWell(
                       onTap: () => Navigator.pop(context),
                       child: Container(
-                          height: 45,
-                          width: 45,
+                          height: 50,
+                          width: 50,
                           decoration: BoxDecoration(
                               color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(18)),
+                              borderRadius: BorderRadius.circular(50 * 0.4)),
                           child: const Icon(
                             Iconsax.arrow_left_2,
                             size: 34,
                           )),
                     ),
                   ),
+                if (userData['uid'] != FirebaseAuth.instance.currentUser!.uid)
+                  isFollowing
+                      ? Positioned(
+                          top: 30,
+                          right: 10,
+                          child: InkWell(
+                            onTap: () async {
+                              await FireStoreMethods().followUser(
+                                FirebaseAuth.instance.currentUser!.uid,
+                                userData['uid'],
+                              );
+                            },
+                            child: Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
+                                    borderRadius:
+                                        BorderRadius.circular(50 * 0.4)),
+                                child: const Icon(
+                                  Iconsax.close_square,
+                                  size: 34,
+                                )),
+                          ),
+                        )
+                      : Positioned(
+                          top: 30,
+                          right: 10,
+                          child: InkWell(
+                            onTap: () async {
+                              await FireStoreMethods().followUser(
+                                FirebaseAuth.instance.currentUser!.uid,
+                                userData['uid'],
+                              );
+                            },
+                            child: Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
+                                    borderRadius:
+                                        BorderRadius.circular(50 * 0.4)),
+                                child: const Icon(
+                                  Iconsax.tick_square,
+                                  size: 34,
+                                )),
+                          ),
+                        ),
                 if (userData['uid'] == FirebaseAuth.instance.currentUser!.uid)
                   Positioned(
                     top: 30,
@@ -281,11 +442,11 @@ class _ProfileState extends State<Profile> {
                             ),
                           )),
                       child: Container(
-                          height: 45,
-                          width: 45,
+                          height: 50,
+                          width: 50,
                           decoration: BoxDecoration(
                               color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(18)),
+                              borderRadius: BorderRadius.circular(50 * 0.4)),
                           child: const Icon(
                             Iconsax.setting_2,
                             size: 34,
@@ -296,4 +457,32 @@ class _ProfileState extends State<Profile> {
             ),
           );
   }
+}
+
+Row buildStatColumn(int num, String label) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      Text(
+        num.toString(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Container(
+        padding: const EdgeInsets.only(left: 5, right: 20),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ],
+  );
 }

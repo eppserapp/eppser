@@ -162,10 +162,6 @@ class _GroupCardState extends State<GroupCard> {
             child: ValueListenableBuilder<Box<dynamic>>(
               valueListenable: Hive.box('groupBox').listenable(),
               builder: (context, box, child) {
-                // Eğer kutu boşsa, alternatif bir widget döndürün
-                if (box.values.isEmpty) {
-                  return Container(); // ...veya uygun bir placeholder widget
-                }
                 dataHive();
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,7 +175,7 @@ class _GroupCardState extends State<GroupCard> {
                           Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(70 * 0.4),
                               child: SizedBox(
                                 width: 70,
                                 height: 70,
@@ -204,8 +200,8 @@ class _GroupCardState extends State<GroupCard> {
                                         decoration: BoxDecoration(
                                             color: const Color.fromRGBO(
                                                 0, 86, 255, 1),
-                                            borderRadius:
-                                                BorderRadius.circular(30)),
+                                            borderRadius: BorderRadius.circular(
+                                                70 * 0.4)),
                                         child: const Icon(
                                           Iconsax.people,
                                           color: Colors.white,

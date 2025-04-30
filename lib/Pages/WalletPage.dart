@@ -558,11 +558,11 @@ class _WalletPageState extends State<WalletPage> {
                                       width: 60,
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(20),
+                                              BorderRadius.circular(60 * 0.4),
                                           color: Colors.green),
                                       child: const Icon(
                                         Iconsax.add_circle,
-                                        size: 28,
+                                        size: 34,
                                         color: Colors.white,
                                       ),
                                     )
@@ -586,11 +586,11 @@ class _WalletPageState extends State<WalletPage> {
                                       width: 60,
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(20),
+                                              BorderRadius.circular(60 * 0.4),
                                           color: Colors.red),
                                       child: const Icon(
                                         Iconsax.minus_cirlce,
-                                        size: 28,
+                                        size: 34,
                                         color: Colors.white,
                                       ),
                                     )
@@ -617,11 +617,12 @@ class _WalletPageState extends State<WalletPage> {
                                       width: 60,
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(20),
-                                          color: Colors.blue[900]),
+                                              BorderRadius.circular(60 * 0.4),
+                                          color: const Color.fromRGBO(
+                                              0, 86, 255, 1)),
                                       child: const Icon(
                                         Iconsax.arrange_circle_2,
-                                        size: 28,
+                                        size: 34,
                                         color: Colors.white,
                                       ),
                                     )
@@ -648,11 +649,11 @@ class _WalletPageState extends State<WalletPage> {
                                       width: 60,
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(20),
+                                              BorderRadius.circular(60 * 0.4),
                                           color: Colors.black),
                                       child: const Icon(
                                         Iconsax.archive,
-                                        size: 28,
+                                        size: 34,
                                         color: Colors.white,
                                       ),
                                     )

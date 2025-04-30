@@ -158,11 +158,11 @@ class FireStoreMethods {
     return res;
   }
 
-  Future<void> sendMessage(String text, String recieverId, String senderId,
+  Future<void> sendMessage(String text, String receiverId, String senderId,
       DateTime date, String messageId) async {
     _firestore
         .collection('Users')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Chats')
         .doc(senderId)
         .collection('Messages')
@@ -171,7 +171,7 @@ class FireStoreMethods {
       'text': text,
       'date': date,
       'isSeen': false,
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'messageId': messageId,
       "sending": false
@@ -181,14 +181,14 @@ class FireStoreMethods {
         .collection('Users')
         .doc(senderId)
         .collection('Chats')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Messages')
         .doc(messageId)
         .set({
       'text': text,
       'date': date,
       'isSeen': false,
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'messageId': messageId,
       "sending": false
@@ -198,9 +198,9 @@ class FireStoreMethods {
         .collection('Users')
         .doc(senderId)
         .collection('Chats')
-        .doc(recieverId)
+        .doc(receiverId)
         .set({
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'timeSent': date,
       'lastMessage': text
@@ -208,12 +208,12 @@ class FireStoreMethods {
 
     _firestore
         .collection('Users')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Chats')
         .doc(senderId)
         .set({
-      'recieverId': senderId,
-      'senderId': recieverId,
+      'receiverId': senderId,
+      'senderId': receiverId,
       'timeSent': date,
       'lastMessage': text
     });
@@ -222,7 +222,7 @@ class FireStoreMethods {
   Future<void> sendImageMessage(
       List<Uint8List> image,
       String text,
-      String recieverId,
+      String receiverId,
       String senderId,
       DateTime date,
       String messageId) async {
@@ -234,7 +234,7 @@ class FireStoreMethods {
 
     _firestore
         .collection('Users')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Chats')
         .doc(senderId)
         .collection('Messages')
@@ -244,7 +244,7 @@ class FireStoreMethods {
       'text': text,
       'date': date,
       'isSeen': false,
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'messageId': messageId,
       "sending": false
@@ -254,7 +254,7 @@ class FireStoreMethods {
         .collection('Users')
         .doc(senderId)
         .collection('Chats')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Messages')
         .doc(messageId)
         .set({
@@ -262,7 +262,7 @@ class FireStoreMethods {
       'text': text,
       'date': date,
       'isSeen': false,
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'messageId': messageId,
       "sending": false
@@ -272,26 +272,26 @@ class FireStoreMethods {
         .collection('Users')
         .doc(senderId)
         .collection('Chats')
-        .doc(recieverId)
+        .doc(receiverId)
         .set({
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'timeSent': date,
     });
 
     _firestore
         .collection('Users')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Chats')
         .doc(senderId)
         .set({
-      'recieverId': senderId,
-      'senderId': recieverId,
+      'receiverId': senderId,
+      'senderId': receiverId,
       'timeSent': date,
     });
   }
 
-  Future<void> sendVideoMessage(List video, String text, String recieverId,
+  Future<void> sendVideoMessage(List video, String text, String receiverId,
       String senderId, DateTime date, String messageId) async {
     var videoUrl = await StorageMethods().uploadVideoToStorage(
       'Messages',
@@ -301,7 +301,7 @@ class FireStoreMethods {
 
     _firestore
         .collection('Users')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Chats')
         .doc(senderId)
         .collection('Messages')
@@ -311,7 +311,7 @@ class FireStoreMethods {
       'text': text,
       'date': date,
       'isSeen': false,
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'messageId': messageId,
       "sending": false
@@ -321,7 +321,7 @@ class FireStoreMethods {
         .collection('Users')
         .doc(senderId)
         .collection('Chats')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Messages')
         .doc(messageId)
         .set({
@@ -329,7 +329,7 @@ class FireStoreMethods {
       'text': text,
       'date': date,
       'isSeen': false,
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'messageId': messageId,
       "sending": false
@@ -339,41 +339,41 @@ class FireStoreMethods {
         .collection('Users')
         .doc(senderId)
         .collection('Chats')
-        .doc(recieverId)
+        .doc(receiverId)
         .set({
-      'recieverId': recieverId,
+      'receiverId': receiverId,
       'senderId': senderId,
       'timeSent': date,
     });
 
     _firestore
         .collection('Users')
-        .doc(recieverId)
+        .doc(receiverId)
         .collection('Chats')
         .doc(senderId)
         .set({
-      'recieverId': senderId,
-      'senderId': recieverId,
+      'receiverId': senderId,
+      'senderId': receiverId,
       'timeSent': date,
     });
   }
 
   Future<String> deleteMessage(
-      String messageId, String recieverId, String senderId) async {
+      String messageId, String receiverId, String senderId) async {
     String res = "Some error occurred";
     try {
       await _firestore
           .collection('Users')
           .doc(senderId)
           .collection('Chats')
-          .doc(recieverId)
+          .doc(receiverId)
           .collection('Messages')
           .doc(messageId)
           .delete();
 
       await _firestore
           .collection('Users')
-          .doc(recieverId)
+          .doc(receiverId)
           .collection('Chats')
           .doc(senderId)
           .collection('Messages')
@@ -534,20 +534,20 @@ class FireStoreMethods {
         .update({'lastMessageTime': DateTime.now()});
   }
 
-  Future<String> deleteChat(String recieverId, String senderId) async {
+  Future<String> deleteChat(String receiverId, String senderId) async {
     String res = "Some error occurred";
     try {
       await _firestore
           .collection('Users')
           .doc(senderId)
           .collection('Chats')
-          .doc(recieverId)
+          .doc(receiverId)
           .delete();
       await _firestore
           .collection('Users')
           .doc(senderId)
           .collection('Chats')
-          .doc(recieverId)
+          .doc(receiverId)
           .collection('Messages')
           .get()
           .then((value) => value.docs.forEach((element) {
@@ -556,13 +556,13 @@ class FireStoreMethods {
 
       await _firestore
           .collection('Users')
-          .doc(recieverId)
+          .doc(receiverId)
           .collection('Chats')
           .doc(senderId)
           .delete();
       await _firestore
           .collection('Users')
-          .doc(recieverId)
+          .doc(receiverId)
           .collection('Chats')
           .doc(senderId)
           .collection('Messages')
@@ -734,6 +734,7 @@ class FireStoreMethods {
     String name,
     String communityId,
     Uint8List? file,
+    Uint8List? file2,
     String about,
   ) async {
     try {
@@ -744,6 +745,15 @@ class FireStoreMethods {
         _firestore.collection('Community').doc(communityId).update({
           'name': name,
           'photoUrl': photoUrl,
+          'about': about,
+        });
+      } else if (file2 != null) {
+        String photoUrl2 = await StorageMethods()
+            .uploadImageToStorage('Community', communityId, file2, true);
+
+        _firestore.collection('Community').doc(communityId).update({
+          'name': name,
+          'imageUrl': photoUrl2,
           'about': about,
         });
       } else {

@@ -71,7 +71,6 @@ class _StoryPageState extends State<StoryPage> {
           .orderBy('datePublished', descending: false)
           .get()
           .then((value) => value.docs.forEach((element) {
-                print(element.data());
                 data.addAll(element.data());
                 if (!data['video']) {
                   data['description'] == ""
