@@ -198,22 +198,19 @@ class _CommunityPageState extends State<CommunityPage> {
   }
 }
 
-// Özel başlık için SliverPersistentHeaderDelegate tanımlıyoruz
 class CommunityHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String communityId;
   const CommunityHeaderDelegate({required this.communityId});
 
   @override
-  double get minExtent => 70; // Başlık küçüldüğündeki minimum yükseklik
+  double get minExtent => 70;
 
   @override
-  double get maxExtent =>
-      120; // Başlık tamamen açıldığındaki maksimum yükseklik
+  double get maxExtent => 120;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // Kaydırma oranını hesapla (0.0 - 1.0 arası)
     final double progress =
         (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
 
@@ -224,7 +221,6 @@ class CommunityHeaderDelegate extends SliverPersistentHeaderDelegate {
           .snapshots(),
       builder: (context, communitySnapshot) {
         if (!communitySnapshot.hasData) {
-          // Placeholder while the community data is loading
           return Stack(
             clipBehavior: Clip.none,
             fit: StackFit.expand,
@@ -335,26 +331,27 @@ class CommunityHeaderDelegate extends SliverPersistentHeaderDelegate {
                 },
               ),
             ),
-            // Yeni grup oluşturma butonu
-            Positioned(
-              top: 20,
-              right: 50,
-              child: IconButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => CreateGroup(
-                      communityId: communityId,
-                    ),
-                  );
-                },
-                icon: const Icon(
-                  Iconsax.add_circle,
-                  color: Colors.white,
-                  size: 30,
+            if (communityData['admins']
+                .contains(FirebaseAuth.instance.currentUser!.uid))
+              Positioned(
+                top: 20,
+                right: 50,
+                child: IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => CreateGroup(
+                        communityId: communityId,
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Iconsax.add_circle,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
               ),
-            ),
             Positioned(
               top: 20,
               right: 10,

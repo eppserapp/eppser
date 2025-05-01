@@ -78,9 +78,14 @@ class _usersPageState extends State<usersPage> with TickerProviderStateMixin {
                   indicatorColor: Colors.black,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey,
+                  dividerColor: Colors.transparent,
                   controller: _tabController,
+                  labelStyle:
+                      const TextStyle(fontSize: 18, color: Colors.white),
                   tabs: const [
-                    Tab(text: "Takip"),
+                    Tab(
+                      text: "Takip",
+                    ),
                     Tab(
                       text: "Takipçi",
                     )
@@ -99,7 +104,6 @@ class _usersPageState extends State<usersPage> with TickerProviderStateMixin {
                 itemCount: followers.length,
                 itemBuilder: (context, index) {
                   return userCard2(
-                    uid: widget.snap,
                     snap: followers[index],
                   );
                 },

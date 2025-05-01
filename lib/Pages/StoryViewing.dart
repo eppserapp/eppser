@@ -1,18 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eppser/Utils/Utils.dart';
-import 'package:eppser/Widgets/userCard3.dart';
+import 'package:eppser/Widgets/UserCard.dart';
 import 'package:flutter/material.dart';
 
-class usersPage2 extends StatefulWidget {
+class StoryViewing extends StatefulWidget {
   final snap;
-  final collection;
-  const usersPage2({super.key, required this.snap, required this.collection});
+  const StoryViewing({
+    super.key,
+    required this.snap,
+  });
 
   @override
-  State<usersPage2> createState() => _usersPage2State();
+  State<StoryViewing> createState() => _StoryViewingState();
 }
 
-class _usersPage2State extends State<usersPage2> {
+class _StoryViewingState extends State<StoryViewing> {
   bool isLoading = false;
   var userData;
   List likes = [];
@@ -24,7 +25,7 @@ class _usersPage2State extends State<usersPage2> {
 
     try {
       var userSnap = await FirebaseFirestore.instance
-          .collection(widget.collection)
+          .collection("Story")
           .doc(widget.snap)
           .get();
       userData = userSnap.data()!;
@@ -32,12 +33,7 @@ class _usersPage2State extends State<usersPage2> {
       isSeen = userData['isSeen'];
 
       setState(() {});
-    } catch (e) {
-      showSnackBar(
-        context,
-        e.toString(),
-      );
-    }
+    } catch (e) {}
     setState(() {
       isLoading = false;
     });
@@ -61,18 +57,22 @@ class _usersPage2State extends State<usersPage2> {
             backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: Colors.black,
+              centerTitle: true,
+              title: const Text(
+                "Hikayeyi Görenler",
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
             body: ListView.builder(
-                itemCount:
-                    widget.collection == "Posts" ? likes.length : isSeen.length,
-                itemBuilder: ((context, index) => userCard3(
-                    snap: widget.snap,
-                    uid: widget.collection == "Posts"
-                        ? likes[index]
-                        : isSeen[index]))));
+                itemCount: isSeen.length,
+                itemBuilder: ((context, index) => userCard(
+                      snap: isSeen[index],
+                    ))));
   }
 }

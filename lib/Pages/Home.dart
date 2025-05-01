@@ -347,7 +347,8 @@ class _HomeState extends State<Home> {
                                                           ),
                                                         ),
                                                         Text(
-                                                          "lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et, varius dolor.",
+                                                          data['about'] ??
+                                                              "Topluluk Açıklaması",
                                                           maxLines: 2,
                                                           overflow: TextOverflow
                                                               .ellipsis,

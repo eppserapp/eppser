@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Pages/Chat.dart';
 import 'package:eppser/Pages/StoryPage.dart';
-import 'package:eppser/Pages/users.dart';
+import 'package:eppser/Pages/UsersPage.dart';
 import 'package:eppser/Resources/firestoreMethods.dart';
 import 'package:eppser/Settings/Settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';

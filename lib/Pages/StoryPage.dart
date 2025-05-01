@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Pages/Profile.dart';
-import 'package:eppser/Pages/users2.dart';
+import 'package:eppser/Pages/StoryViewing.dart';
 import 'package:eppser/Providers/dataIndexProvider.dart';
 import 'package:eppser/Resources/firestoreMethods.dart';
 import 'package:eppser/Story/controller/story_controller.dart';
@@ -308,8 +308,7 @@ class _StoryPageState extends State<StoryPage> {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => usersPage2(
-                                                collection: "Story",
+                                          builder: (context) => StoryViewing(
                                                 snap: data2[provider]
                                                     .data()['postId'],
                                               )));

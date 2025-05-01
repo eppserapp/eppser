@@ -37,5 +37,16 @@ class MessageBox {
     }
   }
 
+  static Future<void> deleteMessage(var uid) async {
+    try {
+      if (!Hive.isBoxOpen(_boxName)) {
+        Hive.openBox(_boxName);
+      }
+      await _box.delete(uid);
+    } catch (e) {
+      print("HiveError: $e");
+    }
+  }
+
   static Box<dynamic> get _box => Hive.box(_boxName);
 }

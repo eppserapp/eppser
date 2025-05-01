@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Pages/Chat.dart';
 import 'package:eppser/Pages/Profile.dart';
@@ -9,15 +10,17 @@ import 'package:intl/intl.dart';
 
 class userCard2 extends StatefulWidget {
   final snap;
-  final uid;
-  const userCard2({super.key, this.snap, required this.uid});
+  const userCard2({
+    super.key,
+    this.snap,
+  });
 
   @override
   State<userCard2> createState() => _userCard2State();
 }
 
 class _userCard2State extends State<userCard2> {
-  String profImage = "";
+  var profImage;
   String name = "";
   String surname = "";
   bool isLoading = false;
@@ -25,7 +28,6 @@ class _userCard2State extends State<userCard2> {
   int followers = 0;
   int following = 0;
   bool tick = false;
-  Map usersId = {};
   var userData;
 
   @override
@@ -67,10 +69,6 @@ class _userCard2State extends State<userCard2> {
 
   @override
   Widget build(BuildContext context) {
-    usersId = {
-      'senderId': FirebaseAuth.instance.currentUser!.uid,
-      'recieverId': widget.snap
-    };
     return isLoading
         ? const SizedBox()
         : Container(
@@ -79,13 +77,49 @@ class _userCard2State extends State<userCard2> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  child: isLoading
-                      ? const SizedBox()
-                      : Image.network(
-                          profImage,
-                          height: 60,
-                          width: 60,
-                          fit: BoxFit.cover,
+                  child: profImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: SizedBox(
+                            width: 70,
+                            height: 70,
+                            child: CachedNetworkImage(
+                              placeholder: (context, url) => Container(
+                                height: 70,
+                                width: 70,
+                                decoration: BoxDecoration(
+                                    color: const Color.fromRGBO(0, 86, 255, 1),
+                                    borderRadius:
+                                        BorderRadius.circular(70 * 0.4)),
+                                child: const Icon(
+                                  Iconsax.user,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              ),
+                              filterQuality: FilterQuality.low,
+                              placeholderFadeInDuration:
+                                  const Duration(microseconds: 1),
+                              fadeOutDuration: const Duration(microseconds: 1),
+                              fadeInDuration: const Duration(milliseconds: 1),
+                              imageUrl: profImage,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error, color: Colors.black),
+                            ),
+                          ),
+                        )
+                      : Container(
+                          height: 70,
+                          width: 70,
+                          decoration: BoxDecoration(
+                              color: const Color.fromRGBO(0, 86, 255, 1),
+                              borderRadius: BorderRadius.circular(70 * 0.4)),
+                          child: const Icon(
+                            Iconsax.user,
+                            color: Colors.white,
+                            size: 50,
+                          ),
                         ),
                 ),
                 Expanded(
@@ -105,7 +139,7 @@ class _userCard2State extends State<userCard2> {
                           Text(
                             name,
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 22,
                               color: Colors.black,
                             ),
                           ),
@@ -114,7 +148,7 @@ class _userCard2State extends State<userCard2> {
                               Text(
                                 surname,
                                 style: const TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 22,
                                   color: Colors.black,
                                 ),
                               ),
@@ -124,7 +158,7 @@ class _userCard2State extends State<userCard2> {
                                       child: Icon(
                                         Iconsax.verify5,
                                         color: Colors.black,
-                                        size: 14,
+                                        size: 18,
                                       ),
                                     )
                                   : const SizedBox()
@@ -135,42 +169,44 @@ class _userCard2State extends State<userCard2> {
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(15)),
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.black,
-                        child: IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => Chat(
-                                          snap: usersId,
-                                        )));
-                          },
-                          icon: const Icon(
-                            Iconsax.message_2,
-                            color: Colors.white,
-                            size: 25,
+                if (widget.snap != FirebaseAuth.instance.currentUser!.uid)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(50 * 0.4)),
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.black,
+                          child: IconButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => Chat(
+                                            snap: widget.snap,
+                                          )));
+                            },
+                            icon: const Icon(
+                              Iconsax.messages_2,
+                              color: Colors.white,
+                              size: 34,
+                            ),
                           ),
-                        ),
-                      )),
-                ),
+                        )),
+                  ),
                 const SizedBox(
                   width: 20,
                 ),
-                widget.uid == FirebaseAuth.instance.currentUser!.uid
+                widget.snap == FirebaseAuth.instance.currentUser!.uid
                     ? isLoading == false
                         ? isFollowers
                             ? Align(
                                 alignment: Alignment.centerRight,
                                 child: ClipRRect(
                                     borderRadius: const BorderRadius.all(
-                                        Radius.circular(15)),
+                                        Radius.circular(50 * 0.4)),
                                     child: Container(
                                       width: 50,
                                       height: 50,
@@ -191,7 +227,7 @@ class _userCard2State extends State<userCard2> {
                                         icon: const Icon(
                                           Iconsax.close_square,
                                           color: Colors.white,
-                                          size: 25,
+                                          size: 34,
                                         ),
                                       ),
                                     )),

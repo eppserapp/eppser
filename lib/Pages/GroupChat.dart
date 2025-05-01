@@ -138,16 +138,17 @@ class _GroupChatState extends State<GroupChat> {
       isLoading = true;
     });
     try {
-      var Snap = await FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('Community')
           .doc(widget.communityId)
           .collection('Groups')
           .doc(widget.groupId)
-          .get();
-
-      groupData = Snap.data();
-      GroupBox.saveGroupData(widget.groupId, groupData);
-      setState(() {});
+          .snapshots()
+          .listen((snap) {
+        groupData = snap.data();
+        GroupBox.saveGroupData(widget.groupId, groupData);
+        setState(() {});
+      });
     } catch (e) {
       print(e.toString());
     }
@@ -158,8 +159,6 @@ class _GroupChatState extends State<GroupChat> {
           .get();
 
       userData = userSnap.data();
-
-      setState(() {});
     } catch (e) {
       print(e.toString());
     }

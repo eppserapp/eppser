@@ -10,6 +10,7 @@ import 'package:eppser/Pages/Profile.dart';
 import 'package:eppser/Providers/themeProvider.dart';
 import 'package:eppser/Resources/firestoreMethods.dart';
 import 'package:eppser/Theme/Theme.dart';
+import 'package:eppser/Utils/Utils.dart';
 import 'package:eppser/Widgets/focused_menu/focused_menu.dart';
 import 'package:eppser/Widgets/focused_menu/modals.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,7 +44,7 @@ class _ChatState extends State<Chat> {
   ScrollController _scrollController = ScrollController();
   var userData;
   var message = {};
-  StreamSubscription? subscription;
+  late final List<StreamSubscription> _subscriptions = [];
   bool? isConnected;
   bool _hasExecuted = false;
   bool isLoading = false;
@@ -88,7 +89,9 @@ class _ChatState extends State<Chat> {
         });
       }
     });
-    if (UserBox.getUserData(widget.snap) == null) {
+    fetchAndSaveMessages();
+    if (UserBox.getUserData(widget.snap) == null ||
+        MessageBox.getMessage(widget.snap) == null) {
       getData();
     } else {
       userData = UserBox.getUserData(widget.snap);
@@ -108,7 +111,9 @@ class _ChatState extends State<Chat> {
     _bannerAd.dispose();
     _scrollController.dispose();
     _textEditingController.dispose();
-    subscription?.cancel();
+    for (var subscription in _subscriptions) {
+      subscription.cancel();
+    }
     super.dispose();
   }
 
@@ -133,6 +138,66 @@ class _ChatState extends State<Chat> {
     });
   }
 
+  void fetchAndSaveMessages() {
+    final messagesChatsSubscription = FirebaseFirestore.instance
+        .collection('Users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('Chats')
+        .snapshots()
+        .listen((chatsSnapshot) {
+      for (var chatDoc in chatsSnapshot.docs) {
+        final chatPartnerId = chatDoc.id;
+        final messagesSubscription = FirebaseFirestore.instance
+            .collection('Users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection('Chats')
+            .doc(chatPartnerId)
+            .collection('Messages')
+            .orderBy('date', descending: false)
+            .snapshots()
+            .listen((messagesSnapshot) async {
+          List existingMessages =
+              List.from(MessageBox.getMessage(chatPartnerId)?.values ?? []);
+
+          for (var msgDoc in messagesSnapshot.docs) {
+            final messageData = msgDoc.data();
+            var senderId = messageData['senderId'];
+
+            int indexToRemove = existingMessages.indexWhere((existingMessage) =>
+                existingMessage['messageId'] == msgDoc.id &&
+                existingMessage['sending'] == true);
+            if (indexToRemove != -1) {
+              existingMessages.removeAt(indexToRemove);
+            } else if (existingMessages.any((existingMessage) =>
+                existingMessage['messageId'] == msgDoc.id)) {
+              continue;
+            }
+
+            existingMessages.add({
+              'messageId': msgDoc.id,
+              'senderId': senderId,
+              'receiverId': messageData['receiverId'],
+              'text': messageData['text'],
+              'file_urls': messageData['file_urls'],
+              'date': (messageData['date'] as Timestamp).toDate(),
+              'isSeen': messageData['isSeen'],
+              'sending': false
+            });
+          }
+
+          var newMessagesMap = {
+            for (var i = 0; i < existingMessages.length; i++)
+              i: existingMessages[i],
+          };
+
+          await MessageBox.saveMessageData(chatPartnerId, newMessagesMap);
+        });
+        _subscriptions.add(messagesSubscription);
+      }
+    });
+    _subscriptions.add(messagesChatsSubscription);
+  }
+
   String getTimeAgo(DateTime dateTime) {
     DateTime localDateTime = dateTime.toLocal();
     DateTime now = DateTime.now().toLocal();
@@ -140,15 +205,12 @@ class _ChatState extends State<Chat> {
     if (localDateTime.year == now.year &&
         localDateTime.month == now.month &&
         localDateTime.day == now.day) {
-      // Bugünse sadece saat olarak göster
       return "Bugün";
     } else if (localDateTime.year == now.year &&
         localDateTime.month == now.month &&
         localDateTime.day == now.day - 1) {
-      // Dünse "Dün" olarak göster
       return "Dün";
     } else {
-      // Diğer durumlar için tarih formatını kullan
       return DateFormat.yMMMMd("Tr_tr").format(localDateTime);
     }
   }
@@ -381,7 +443,99 @@ class _ChatState extends State<Chat> {
                                 Icons.delete,
                                 color: Colors.redAccent,
                               ),
-                              onPressed: () {}),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      backgroundColor: Theme.of(context)
+                                          .scaffoldBackgroundColor,
+                                      title: Text(
+                                        "Sohbeti Sil",
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color),
+                                      ),
+                                      contentTextStyle: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color),
+                                      content: const Text(
+                                          "Bu sohbeti silmek istediğinize emin misiniz?"),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text("Hayır",
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.color)),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            () async {
+                                              try {
+                                                String currentUserId =
+                                                    FirebaseAuth.instance
+                                                        .currentUser!.uid;
+                                                String chatPartnerId =
+                                                    userData['uid'];
+                                                // Delete all messages in the conversation
+                                                final messagesSnapshot =
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('Users')
+                                                        .doc(currentUserId)
+                                                        .collection('Chats')
+                                                        .doc(chatPartnerId)
+                                                        .collection('Messages')
+                                                        .get();
+                                                final batch = FirebaseFirestore
+                                                    .instance
+                                                    .batch();
+                                                for (var doc
+                                                    in messagesSnapshot.docs) {
+                                                  batch.delete(doc.reference);
+                                                }
+                                                await batch.commit();
+
+                                                // Delete the chat document (conversation metadata)
+                                                await FirebaseFirestore.instance
+                                                    .collection('Users')
+                                                    .doc(currentUserId)
+                                                    .collection('Chats')
+                                                    .doc(chatPartnerId)
+                                                    .delete();
+
+                                                // Delete the chat from the local MessageBox.
+                                                await MessageBox.deleteMessage(
+                                                    chatPartnerId);
+
+                                                showSnackBar(
+                                                    context, 'Sohbet Silindi!');
+                                                Navigator.pop(context);
+                                                Navigator.pop(context);
+                                              } catch (e) {
+                                                print(e.toString());
+                                                Navigator.pop(context);
+                                              }
+                                            }();
+                                          },
+                                          child: const Text("Evet",
+                                              style: TextStyle(
+                                                  color: Colors.redAccent)),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }),
                         ],
                         onPressed: () {},
                       ),

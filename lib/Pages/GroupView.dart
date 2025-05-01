@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eppser/Database/Groups.dart';
 import 'package:eppser/Pages/BottomBar.dart';
 import 'package:eppser/Pages/Chat.dart';
-import 'package:eppser/Pages/Home.dart';
 import 'package:eppser/Resources/firestoreMethods.dart';
 import 'package:eppser/Utils/Utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,20 +38,9 @@ class _GroupViewState extends State<GroupView> {
     setState(() {
       isLoading = true;
     });
-    try {
-      var Snap = await FirebaseFirestore.instance
-          .collection('Community')
-          .doc(widget.snap['communityId'])
-          .collection('Groups')
-          .doc(widget.snap['groupId'])
-          .get();
 
-      groupData = Snap.data();
-      GroupBox.saveGroupData(widget.snap['groupId'], groupData);
-      setState(() {});
-    } catch (e) {
-      print(e.toString());
-    }
+    groupData = GroupBox.getGroupData(widget.snap['groupId']);
+
     var data = await FirebaseFirestore.instance
         .collection('Users')
         .where('uid', whereIn: widget.snap['members'])
@@ -424,10 +412,12 @@ class _GroupViewState extends State<GroupView> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
+                          backgroundColor: Colors.white,
                           surfaceTintColor: Colors.white,
                           title: const Text('Gruptan Çık'),
                           content: const Text(
-                              'Gruptan çıkmak istediğinize emin misiniz?'),
+                              'Gruptan çıkmak istediğinize emin misiniz?',
+                              style: TextStyle(color: Colors.black)),
                           actions: [
                             TextButton(
                               onPressed: () {
@@ -493,46 +483,46 @@ class _GroupViewState extends State<GroupView> {
                     itemBuilder: (context, index) {
                       return Column(
                         children: [
-                          if (index == 0)
-                            InkWell(
-                              onTap: () {},
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 10, right: 10),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(50 * 0.4)),
-                                      ),
-                                      height: 50,
-                                      width: 50,
-                                      child: Icon(
-                                        Iconsax.user_add,
-                                        color: Theme.of(context)
-                                            .scaffoldBackgroundColor,
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Üye ekle (Davet Et)',
-                                    style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
-                                  )
-                                ],
-                              ),
-                            ),
+                          // if (index == 0)
+                          //   InkWell(
+                          //     onTap: () {},
+                          //     child: Row(
+                          //       children: [
+                          //         Padding(
+                          //           padding: const EdgeInsets.only(
+                          //               left: 10, right: 10),
+                          //           child: Container(
+                          //             decoration: BoxDecoration(
+                          //               color: Theme.of(context)
+                          //                   .textTheme
+                          //                   .bodyMedium
+                          //                   ?.color,
+                          //               borderRadius: BorderRadius.all(
+                          //                   Radius.circular(50 * 0.4)),
+                          //             ),
+                          //             height: 50,
+                          //             width: 50,
+                          //             child: Icon(
+                          //               Iconsax.user_add,
+                          //               color: Theme.of(context)
+                          //                   .scaffoldBackgroundColor,
+                          //               size: 24,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         Text(
+                          //           'Üye ekle (Davet Et)',
+                          //           style: TextStyle(
+                          //               color: Theme.of(context)
+                          //                   .textTheme
+                          //                   .bodyMedium
+                          //                   ?.color,
+                          //               fontSize: 18,
+                          //               fontWeight: FontWeight.bold),
+                          //         )
+                          //       ],
+                          //     ),
+                          //   ),
                           InkWell(
                             onTap: () => userData[index]['uid'] !=
                                     FirebaseAuth.instance.currentUser!.uid
@@ -559,7 +549,9 @@ class _GroupViewState extends State<GroupView> {
                                         SimpleDialogOption(
                                           padding: const EdgeInsets.all(10),
                                           child: const Text(
-                                              'Yöneticilikten Çıkar'),
+                                              'Yöneticilikten Çıkar',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
                                           onPressed: () {
                                             FirebaseFirestore.instance
                                                 .collection('Community')
@@ -578,7 +570,9 @@ class _GroupViewState extends State<GroupView> {
                                           .contains(userData[index]['uid']))
                                         SimpleDialogOption(
                                           padding: const EdgeInsets.all(10),
-                                          child: const Text('Yönetici Yap'),
+                                          child: const Text('Yönetici Yap',
+                                              style: TextStyle(
+                                                  color: Colors.green)),
                                           onPressed: () {
                                             FirebaseFirestore.instance
                                                 .collection('Community')
@@ -602,23 +596,24 @@ class _GroupViewState extends State<GroupView> {
                                               userData[index]['uid'])
                                         SimpleDialogOption(
                                           padding: const EdgeInsets.all(10),
-                                          child: const Text('Gruptan Çıkar'),
-                                          onPressed: () {
-                                            FirebaseFirestore.instance
+                                          child: const Text('Gruptan Çıkar',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
+                                          onPressed: () async {
+                                            await FirebaseFirestore.instance
                                                 .collection('Community')
                                                 .doc(groupData['communityId'])
                                                 .collection('Groups')
                                                 .doc(groupData['groupId'])
                                                 .update({
-                                              'members':
-                                                  FieldValue.arrayRemove([
-                                                userData[index]['uid'],
-                                              ]),
-                                              'admins': FieldValue.arrayRemove([
-                                                userData[index]['uid'],
-                                              ])
+                                              'members': FieldValue.arrayRemove(
+                                                  [userData[index]['uid']]),
                                             });
-                                            getData();
+                                            setState(() {
+                                              userData.removeWhere((element) =>
+                                                  element['uid'] ==
+                                                  userData[index]['uid']);
+                                            });
                                             Navigator.pop(context);
                                           },
                                         )

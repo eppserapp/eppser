@@ -22,6 +22,8 @@ class MessagePage extends StatefulWidget {
 class _MessagePageState extends State<MessagePage> {
   late final List<StreamSubscription> _subscriptions = [];
   var userData;
+  final ScrollController _scrollController = ScrollController();
+  bool isCollapsed = false;
 
   @override
   void initState() {
@@ -29,6 +31,11 @@ class _MessagePageState extends State<MessagePage> {
     fetchAndSaveMessages();
     fetchAndSaveUserData();
     getUserData();
+    _scrollController.addListener(() {
+      setState(() {
+        isCollapsed = _scrollController.offset > (150 - kToolbarHeight);
+      });
+    });
   }
 
   void getUserData() async {
@@ -43,7 +50,6 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   void fetchAndSaveUserData() {
-    // Listen to chat partners' data changes.
     final userChatsSubscription = FirebaseFirestore.instance
         .collection('Users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -137,6 +143,7 @@ class _MessagePageState extends State<MessagePage> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     for (var subscription in _subscriptions) {
       subscription.cancel();
     }
@@ -147,100 +154,118 @@ class _MessagePageState extends State<MessagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        scrolledUnderElevation: 0,
-        toolbarHeight: 150,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: userData['profImage'] != null
-                  ? NetworkImage(userData['profImage'])
-                  : AssetImage('assets/images/background.jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        centerTitle: true,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Hoşgeldin",
-                    style: TextStyle(
-                        fontSize: 34,
-                        color: Colors.deepOrange,
-                        fontWeight: FontWeight.bold),
-                  ).animate().move(
-                        duration: 800.ms,
-                        begin: const Offset(-20, 0),
-                        end: Offset.zero,
-                        curve: Curves.easeOut,
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            pinned: true,
+            expandedHeight: 150,
+            backgroundColor: Colors.black,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(bottom: 14),
+              title: isCollapsed
+                  ? const Padding(
+                      padding: EdgeInsets.only(left: 10),
+                      child: Text(
+                        "Mesajlar",
+                        style: TextStyle(
+                          fontSize: 28,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                  Text(
-                    userData['name'] ?? "",
-                    style: const TextStyle(
-                        fontSize: 38,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ).animate().move(
-                        duration: 800.ms,
-                        begin: const Offset(20, 0),
-                        end: Offset.zero,
-                        curve: Curves.easeOut,
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.only(left: 15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Hoşgeldin",
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: Color.fromRGBO(0, 86, 255, 1),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ).animate().move(
+                                duration: 800.ms,
+                                begin: const Offset(-20, 0),
+                                end: Offset.zero,
+                                curve: Curves.easeOut,
+                              ),
+                          Text(
+                            userData?['name'] ?? "",
+                            style: const TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ).animate().move(
+                                duration: 800.ms,
+                                begin: const Offset(20, 0),
+                                end: Offset.zero,
+                                curve: Curves.easeOut,
+                              ),
+                        ],
                       ),
-                ],
+                    ),
+              background: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: userData?['profImage'] != null
+                        ? NetworkImage(userData!['profImage'])
+                        : const AssetImage('assets/images/background.jpg')
+                            as ImageProvider,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-      body: MessageBox.getAllMessages() != null &&
-              UserBox.getAllUserData() != null
-          ? ValueListenableBuilder(
-              valueListenable: Hive.box('messageBox').listenable(),
-              builder: (context, value, child) {
-                final items = MessageBox.getAllMessages()?.entries.toList();
-                return ListView.builder(
-                  itemCount: items?.length,
-                  itemBuilder: (context, index) {
-                    final item = items![index];
-                    var userData;
-                    String myId = FirebaseAuth.instance.currentUser!.uid;
+          ),
 
-                    final messagesMap = (item.value as Map);
-                    final lastMessage = messagesMap.entries.last.value;
-                    String senderId = lastMessage['senderId'];
-                    String receiverId = lastMessage['receiverId'];
-
-                    if (receiverId == myId) {
-                      userData = senderId;
-                    } else {
-                      userData = receiverId;
-                    }
-
-                    return GestureDetector(
-                        onLongPress: () {
-                          showDialog(
-                            useRootNavigator: false,
-                            context: context,
-                            builder: (context) {
-                              return Dialog(
-                                child: ListView(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shrinkWrap: true,
-                                    children: [
-                                      'Sil',
-                                    ]
-                                        .map(
-                                          (e) => InkWell(
+          // Mesaj listesinin sliver yapısına alınması:
+          MessageBox.getAllMessages() != null &&
+                  UserBox.getAllUserData() != null
+              ? ValueListenableBuilder(
+                  valueListenable: Hive.box('messageBox').listenable(),
+                  builder: (context, value, child) {
+                    final items =
+                        MessageBox.getAllMessages()?.entries.toList() ?? [];
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final item = items[index];
+                          var userData;
+                          String myId = FirebaseAuth.instance.currentUser!.uid;
+                          final messagesMap = (item.value as Map);
+                          final lastMessage = messagesMap.entries.last.value;
+                          String senderId = lastMessage['senderId'];
+                          String receiverId = lastMessage['receiverId'];
+                          if (receiverId == myId) {
+                            userData = senderId;
+                          } else {
+                            userData = receiverId;
+                          }
+                          return GestureDetector(
+                            onLongPress: () {
+                              showDialog(
+                                useRootNavigator: false,
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                    backgroundColor: Colors.black,
+                                    child: ListView(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                      shrinkWrap: true,
+                                      children: [
+                                        'Sohbeti Sil',
+                                      ]
+                                          .map(
+                                            (e) => InkWell(
                                               child: Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -249,44 +274,86 @@ class _MessagePageState extends State<MessagePage> {
                                                 child: Text(e),
                                               ),
                                               onTap: () async {
-                                                // await FireStoreMethods()
-                                                //     .deleteChat(
-                                                //         snapshot.data!
-                                                //                 .docs[index]
-                                                //             ['recieverId'],
-                                                //         snapshot.data!
-                                                //                 .docs[index]
-                                                //             ['senderId']);
-                                                // // ignore: use_build_context_synchronously
-                                                showSnackBar(
-                                                  context,
-                                                  'Sohbet Silindi!',
-                                                );
+                                                try {
+                                                  String currentUserId =
+                                                      FirebaseAuth.instance
+                                                          .currentUser!.uid;
+                                                  String chatPartnerId =
+                                                      userData.toString();
+                                                  // Delete all messages in the conversation
+                                                  final messagesSnapshot =
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection('Users')
+                                                          .doc(currentUserId)
+                                                          .collection('Chats')
+                                                          .doc(chatPartnerId)
+                                                          .collection(
+                                                              'Messages')
+                                                          .get();
+                                                  final batch =
+                                                      FirebaseFirestore.instance
+                                                          .batch();
+                                                  for (var doc
+                                                      in messagesSnapshot
+                                                          .docs) {
+                                                    batch.delete(doc.reference);
+                                                  }
+                                                  await batch.commit();
+
+                                                  // Delete the chat document (conversation metadata)
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('Users')
+                                                      .doc(currentUserId)
+                                                      .collection('Chats')
+                                                      .doc(chatPartnerId)
+                                                      .delete();
+
+                                                  // Delete the chat from the local MessageBox.
+                                                  await MessageBox
+                                                      .deleteMessage(
+                                                          chatPartnerId);
+
+                                                  showSnackBar(context,
+                                                      'Sohbet Silindi!');
+                                                } catch (err) {
+                                                  showSnackBar(
+                                                      context, 'Hata: $err');
+                                                }
                                                 Navigator.of(context).pop();
-                                              }),
-                                        )
-                                        .toList()),
+                                              },
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  );
+                                },
                               );
                             },
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Chat(
+                                    snap: userData,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: ChatCard(
+                              snap: userData,
+                            ),
                           );
                         },
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Chat(
-                                      snap: userData,
-                                    )),
-                          );
-                        },
-                        child: ChatCard(
-                          snap: userData,
-                        ));
+                        childCount: items.length,
+                      ),
+                    );
                   },
-                );
-              },
-            )
-          : SizedBox(),
+                )
+              : SliverToBoxAdapter(child: SizedBox()),
+        ],
+      ),
     );
   }
 }

@@ -62,14 +62,26 @@ class _CommunityViewState extends State<CommunityView> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? const Center(
-            child: CircularProgressIndicator(
-              color: Colors.green,
-            ),
-          )
-        : Scaffold(
-            appBar: AppBar(
+    return Scaffold(
+      appBar: isLoading
+          ? AppBar(
+              scrolledUnderElevation: 0,
+              backgroundColor: Colors.black,
+              automaticallyImplyLeading: false,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: IconButton(
+                  icon: const Icon(
+                    Iconsax.arrow_left_2,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              title: const SizedBox(),
+            )
+          : AppBar(
               scrolledUnderElevation: 0,
               backgroundColor: Colors.black,
               automaticallyImplyLeading: false,
@@ -544,10 +556,12 @@ class _CommunityViewState extends State<CommunityView> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
+                            backgroundColor: Colors.white,
                             surfaceTintColor: Colors.white,
                             title: const Text('Topluluktan Çık'),
                             content: const Text(
-                                'Topluluk çıkmak istediğinize emin misiniz?'),
+                                'Topluluk çıkmak istediğinize emin misiniz?',
+                                style: TextStyle(color: Colors.black)),
                             actions: [
                               TextButton(
                                 onPressed: () {
@@ -596,7 +610,13 @@ class _CommunityViewState extends State<CommunityView> {
                     ))
               ],
             ),
-            body: RefreshIndicator(
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).textTheme.bodyMedium!.color,
+              ),
+            )
+          : RefreshIndicator(
               backgroundColor: Colors.white,
               color: Colors.black,
               onRefresh: () {
@@ -613,49 +633,6 @@ class _CommunityViewState extends State<CommunityView> {
                       itemBuilder: (context, index) {
                         return Column(
                           children: [
-                            if (index == 0)
-                              const SizedBox(
-                                height: 10,
-                              ),
-                            if (index == 0)
-                              InkWell(
-                                child: Row(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 10, right: 10),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium!
-                                              .color,
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(50 * 0.4)),
-                                        ),
-                                        height: 50,
-                                        width: 50,
-                                        child: Icon(
-                                          Iconsax.user_add,
-                                          color: Theme.of(context)
-                                              .scaffoldBackgroundColor,
-                                          size: 34,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      'Üye ekle (Davet Et)',
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium!
-                                              .color,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    )
-                                  ],
-                                ),
-                              ),
                             InkWell(
                               onTap: () => userData[index]['uid'] !=
                                       FirebaseAuth.instance.currentUser!.uid
@@ -682,7 +659,9 @@ class _CommunityViewState extends State<CommunityView> {
                                           SimpleDialogOption(
                                             padding: const EdgeInsets.all(10),
                                             child: const Text(
-                                                'Yöneticilikten Çıkar'),
+                                                'Yöneticilikten Çıkar',
+                                                style: TextStyle(
+                                                    color: Colors.red)),
                                             onPressed: () {
                                               FirebaseFirestore.instance
                                                   .collection('Community')
@@ -694,6 +673,7 @@ class _CommunityViewState extends State<CommunityView> {
                                                   userData[index]['uid']
                                                 ])
                                               });
+                                              getData();
                                               Navigator.pop(context);
                                             },
                                           ),
@@ -701,7 +681,9 @@ class _CommunityViewState extends State<CommunityView> {
                                             .contains(userData[index]['uid']))
                                           SimpleDialogOption(
                                             padding: const EdgeInsets.all(10),
-                                            child: const Text('Yönetici Yap'),
+                                            child: const Text('Yönetici Yap',
+                                                style: TextStyle(
+                                                    color: Colors.green)),
                                             onPressed: () {
                                               FirebaseFirestore.instance
                                                   .collection('Community')
@@ -711,6 +693,7 @@ class _CommunityViewState extends State<CommunityView> {
                                                 'admins': FieldValue.arrayUnion(
                                                     [userData[index]['uid']])
                                               });
+                                              getData();
                                               Navigator.pop(context);
                                             },
                                           ),
@@ -723,7 +706,9 @@ class _CommunityViewState extends State<CommunityView> {
                                                 userData[index]['uid'])
                                           SimpleDialogOption(
                                             padding: const EdgeInsets.all(10),
-                                            child: const Text('Kanaldan Çıkar'),
+                                            child: const Text('Kanaldan Çıkar',
+                                                style: TextStyle(
+                                                    color: Colors.red)),
                                             onPressed: () {
                                               FirebaseFirestore.instance
                                                   .collection('Community')
@@ -739,6 +724,7 @@ class _CommunityViewState extends State<CommunityView> {
                                                   userData[index]['uid'],
                                                 ])
                                               });
+                                              getData();
                                               Navigator.pop(context);
                                             },
                                           )
@@ -867,6 +853,6 @@ class _CommunityViewState extends State<CommunityView> {
                         );
                       }),
             ),
-          );
+    );
   }
 }
