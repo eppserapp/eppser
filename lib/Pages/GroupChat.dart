@@ -17,6 +17,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GroupChat extends StatefulWidget {
   final groupId;
@@ -202,6 +204,15 @@ class _GroupChatState extends State<GroupChat> {
                     [FirebaseAuth.instance.currentUser!.uid])
               });
             }));
+  }
+
+  Future<void> _onOpenLink(LinkableElement link) async {
+    final uri = Uri.parse(link.url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Link açılamadı: ${link.url}';
+    }
   }
 
   @override
@@ -529,11 +540,54 @@ class _GroupChatState extends State<GroupChat> {
                                                         );
                                                 },
                                               ),
-                                            Text(
-                                              message[index.toString()]['text'],
+                                            SelectableLinkify(
+                                              text: message[index.toString()]
+                                                  ['text'],
                                               style: const TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 16),
+                                              linkStyle: const TextStyle(
+                                                decoration:
+                                                    TextDecoration.underline,
+                                                decorationColor: Colors.blue,
+                                              ),
+                                              contextMenuBuilder:
+                                                  (BuildContext context,
+                                                      EditableTextState
+                                                          editableTextState) {
+                                                return AdaptiveTextSelectionToolbar(
+                                                  anchors: editableTextState
+                                                      .contextMenuAnchors,
+                                                  children: [
+                                                    TextSelectionToolbarTextButton(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      onPressed: () {
+                                                        editableTextState
+                                                            .copySelection(
+                                                                SelectionChangedCause
+                                                                    .toolbar);
+                                                      },
+                                                      child:
+                                                          const Text("Kopyala"),
+                                                    ),
+                                                    TextSelectionToolbarTextButton(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      onPressed: () {
+                                                        editableTextState.selectAll(
+                                                            SelectionChangedCause
+                                                                .toolbar);
+                                                      },
+                                                      child: const Text(
+                                                          "Tümünü Seç"),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                              onOpen: _onOpenLink,
                                             ),
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -734,11 +788,54 @@ class _GroupChatState extends State<GroupChat> {
                                                   color: Colors.deepOrange,
                                                   fontSize: 12),
                                             ),
-                                            Text(
-                                              message[index.toString()]['text'],
+                                            SelectableLinkify(
+                                              text: message[index.toString()]
+                                                  ['text'],
                                               style: const TextStyle(
-                                                  color: Colors.black,
+                                                  color: Colors.white,
                                                   fontSize: 16),
+                                              linkStyle: const TextStyle(
+                                                decoration:
+                                                    TextDecoration.underline,
+                                                decorationColor: Colors.blue,
+                                              ),
+                                              contextMenuBuilder:
+                                                  (BuildContext context,
+                                                      EditableTextState
+                                                          editableTextState) {
+                                                return AdaptiveTextSelectionToolbar(
+                                                  anchors: editableTextState
+                                                      .contextMenuAnchors,
+                                                  children: [
+                                                    TextSelectionToolbarTextButton(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      onPressed: () {
+                                                        editableTextState
+                                                            .copySelection(
+                                                                SelectionChangedCause
+                                                                    .toolbar);
+                                                      },
+                                                      child:
+                                                          const Text("Kopyala"),
+                                                    ),
+                                                    TextSelectionToolbarTextButton(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      onPressed: () {
+                                                        editableTextState.selectAll(
+                                                            SelectionChangedCause
+                                                                .toolbar);
+                                                      },
+                                                      child: const Text(
+                                                          "Tümünü Seç"),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                              onOpen: _onOpenLink,
                                             ),
                                             Row(
                                               mainAxisAlignment:
@@ -830,7 +927,8 @@ class _GroupChatState extends State<GroupChat> {
                                       onPressed: () {
                                         _toggleEmojiKeyboard();
                                       },
-                                      icon: const Icon(Iconsax.emoji_happy)),
+                                      icon: const Icon(Iconsax.emoji_happy,
+                                          size: 32)),
                                   Expanded(
                                     child: Padding(
                                       padding: const EdgeInsets.only(
@@ -844,6 +942,59 @@ class _GroupChatState extends State<GroupChat> {
                                                 ?.color),
                                         controller: _textEditingController,
                                         maxLines: null,
+                                        contextMenuBuilder:
+                                            (BuildContext context,
+                                                EditableTextState
+                                                    editableTextState) {
+                                          return AdaptiveTextSelectionToolbar(
+                                            anchors: editableTextState
+                                                .contextMenuAnchors,
+                                            children: [
+                                              TextSelectionToolbarTextButton(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                onPressed: () {
+                                                  editableTextState
+                                                      .copySelection(
+                                                          SelectionChangedCause
+                                                              .toolbar);
+                                                },
+                                                child: const Text("Kopyala"),
+                                              ),
+                                              TextSelectionToolbarTextButton(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                onPressed: () {
+                                                  editableTextState
+                                                      .cutSelection(
+                                                          SelectionChangedCause
+                                                              .toolbar);
+                                                },
+                                                child: const Text("Kes"),
+                                              ),
+                                              TextSelectionToolbarTextButton(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                onPressed: () {
+                                                  editableTextState.pasteText(
+                                                      SelectionChangedCause
+                                                          .toolbar);
+                                                },
+                                                child: const Text("Yapıştır"),
+                                              ),
+                                              TextSelectionToolbarTextButton(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                onPressed: () {
+                                                  editableTextState.selectAll(
+                                                      SelectionChangedCause
+                                                          .toolbar);
+                                                },
+                                                child: const Text("Tümünü Seç"),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                         decoration: const InputDecoration(
                                           focusColor: Colors.white,
                                           hintText: 'Mesaj yaz...',
@@ -1050,7 +1201,7 @@ class _GroupChatState extends State<GroupChat> {
                                         };
                                         GroupMessageBox.saveGroupMessage(
                                             widget.groupId, newMessage);
-                                        FireStoreMethods().sendChanelMessage(
+                                        FireStoreMethods().sendCommunityMessage(
                                             _textEditingController.text.trim(),
                                             FirebaseAuth
                                                 .instance.currentUser!.uid,

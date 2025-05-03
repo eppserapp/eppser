@@ -388,10 +388,55 @@ class FireStoreMethods {
     return res;
   }
 
+  Future<String> deleteChat(String receiverId, String senderId) async {
+    String res = "Some error occurred";
+    try {
+      await _firestore
+          .collection('Users')
+          .doc(senderId)
+          .collection('Chats')
+          .doc(receiverId)
+          .delete();
+      await _firestore
+          .collection('Users')
+          .doc(senderId)
+          .collection('Chats')
+          .doc(receiverId)
+          .collection('Messages')
+          .get()
+          .then((value) => value.docs.forEach((element) {
+                element.reference.delete();
+              }));
+
+      await _firestore
+          .collection('Users')
+          .doc(receiverId)
+          .collection('Chats')
+          .doc(senderId)
+          .delete();
+      await _firestore
+          .collection('Users')
+          .doc(receiverId)
+          .collection('Chats')
+          .doc(senderId)
+          .collection('Messages')
+          .get()
+          .then((value) => value.docs.forEach((element) {
+                element.reference.delete();
+              }));
+      res = 'success';
+    } catch (err) {
+      print(err);
+      res = err.toString();
+    }
+    return res;
+  }
+
   Future<void> sendImageMessageGroup(
       String name,
       List<Uint8List> image,
       String text,
+      String communityId,
       String groupId,
       String senderId,
       DateTime date,
@@ -403,6 +448,8 @@ class FireStoreMethods {
     );
 
     _firestore
+        .collection('Community')
+        .doc(communityId)
         .collection('Groups')
         .doc(groupId)
         .collection('Messages')
@@ -453,131 +500,6 @@ class FireStoreMethods {
         .update({'lastMessageTime': DateTime.now()});
   }
 
-  Future<void> sendImageMessageChanel(
-      String name,
-      List<Uint8List> image,
-      String text,
-      String groupId,
-      String chanelId,
-      String senderId,
-      DateTime date,
-      String messageId) async {
-    var imageUrl = await StorageMethods().uploadImagesToStorage(
-      'Messages',
-      FirebaseAuth.instance.currentUser!.uid,
-      image,
-    );
-
-    _firestore
-        .collection('Chanels')
-        .doc(chanelId)
-        .collection('Groups')
-        .doc(groupId)
-        .collection('Messages')
-        .doc(messageId)
-        .set({
-      'name': name,
-      'imageUrl': imageUrl,
-      'text': text,
-      'date': date,
-      'isSeen': [FirebaseAuth.instance.currentUser!.uid],
-      'senderId': senderId,
-      'messageId': messageId,
-      "sending": false
-    });
-
-    _firestore
-        .collection('Chanels')
-        .doc(chanelId)
-        .collection('Groups')
-        .doc(groupId)
-        .update({'lastMessageTime': DateTime.now()});
-  }
-
-  Future<void> sendVideoMessageChanel(
-      String name,
-      List video,
-      String text,
-      String groupId,
-      String chanelId,
-      String senderId,
-      DateTime date,
-      String messageId) async {
-    var videoUrl = await StorageMethods().uploadVideoToStorage(
-      'Messages',
-      FirebaseAuth.instance.currentUser!.uid,
-      video,
-    );
-
-    _firestore
-        .collection('Chanels')
-        .doc(chanelId)
-        .collection('Groups')
-        .doc(groupId)
-        .collection('Messages')
-        .doc(messageId)
-        .set({
-      'name': name,
-      'videoUrl': videoUrl,
-      'text': text,
-      'date': date,
-      'isSeen': [FirebaseAuth.instance.currentUser!.uid],
-      'senderId': senderId,
-      'messageId': messageId,
-      "sending": false
-    });
-    _firestore
-        .collection('Chanels')
-        .doc(chanelId)
-        .collection('Groups')
-        .doc(groupId)
-        .update({'lastMessageTime': DateTime.now()});
-  }
-
-  Future<String> deleteChat(String receiverId, String senderId) async {
-    String res = "Some error occurred";
-    try {
-      await _firestore
-          .collection('Users')
-          .doc(senderId)
-          .collection('Chats')
-          .doc(receiverId)
-          .delete();
-      await _firestore
-          .collection('Users')
-          .doc(senderId)
-          .collection('Chats')
-          .doc(receiverId)
-          .collection('Messages')
-          .get()
-          .then((value) => value.docs.forEach((element) {
-                element.reference.delete();
-              }));
-
-      await _firestore
-          .collection('Users')
-          .doc(receiverId)
-          .collection('Chats')
-          .doc(senderId)
-          .delete();
-      await _firestore
-          .collection('Users')
-          .doc(receiverId)
-          .collection('Chats')
-          .doc(senderId)
-          .collection('Messages')
-          .get()
-          .then((value) => value.docs.forEach((element) {
-                element.reference.delete();
-              }));
-      res = 'success';
-    } catch (err) {
-      print(err);
-      res = err.toString();
-    }
-    return res;
-  }
-
   Future<void> sendMessageGroup(String text, String senderId, DateTime date,
       String name, String messageId, String groupId) async {
     _firestore
@@ -601,11 +523,11 @@ class FireStoreMethods {
         .update({'lastMessageTime': DateTime.now()});
   }
 
-  Future<void> sendChanelMessage(String text, String senderId, DateTime date,
-      String name, String messageId, String groupId, String community) async {
+  Future<void> sendCommunityMessage(String text, String senderId, DateTime date,
+      String name, String messageId, String groupId, String communityId) async {
     _firestore
         .collection('Community')
-        .doc(community)
+        .doc(communityId)
         .collection('Groups')
         .doc(groupId)
         .collection('Messages')
@@ -619,77 +541,6 @@ class FireStoreMethods {
       'messageId': messageId,
       "sending": false
     });
-  }
-
-  Future<void> createGroup(
-    String name,
-    String uid,
-    List admins,
-    List members,
-    Uint8List? file,
-    String about,
-  ) async {
-    try {
-      if (file != null) {
-        String groupId = const Uuid().v1();
-        String photoUrl = await StorageMethods()
-            .uploadImageToStorage('Groups', groupId, file, true);
-
-        _firestore.collection('Groups').doc(groupId).set({
-          'name': name,
-          'uid': uid,
-          'groupId': groupId,
-          'admins': admins,
-          'members': members,
-          'photoUrl': photoUrl,
-          'about': about,
-          'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
-        });
-      } else {
-        String groupId = const Uuid().v1();
-        _firestore.collection('Groups').doc(groupId).set({
-          'name': name,
-          'uid': uid,
-          'groupId': groupId,
-          'admins': admins,
-          'members': members,
-          'photoUrl': null,
-          'about': about,
-          'date': DateTime.now(),
-          'lastMessageTime': DateTime.now()
-        });
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> editGroup(
-    String name,
-    String groupId,
-    Uint8List? file,
-    String about,
-  ) async {
-    try {
-      if (file != null) {
-        String photoUrl = await StorageMethods()
-            .uploadImageToStorage('Groups', groupId, file, true);
-
-        _firestore.collection('Groups').doc(groupId).update({
-          'name': name,
-          'photoUrl': photoUrl,
-          'about': about,
-        });
-      } else {
-        _firestore.collection('Groups').doc(groupId).update({
-          'name': name,
-          'about': about,
-        });
-      }
-    } catch (e) {
-      print(e);
-    }
   }
 
   Future<void> editCommunityGroup(
@@ -900,5 +751,37 @@ class FireStoreMethods {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<String> createEvent(
+    String title,
+    String description,
+    DateTime eventDate,
+    Uint8List? file,
+    String uid,
+  ) async {
+    String res = "Some error occurred";
+
+    try {
+      String eventId = const Uuid().v1();
+      String? imageUrl;
+      if (file != null) {
+        imageUrl = await StorageMethods()
+            .uploadImageToStorage('Events', eventId, file, true);
+      }
+      await _firestore.collection('Events').doc(eventId).set({
+        'eventId': eventId,
+        'title': title,
+        'imageUrl': imageUrl,
+        'description': description,
+        'eventDate': eventDate,
+        'createdBy': uid,
+        'dateCreated': DateTime.now(),
+      });
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
   }
 }

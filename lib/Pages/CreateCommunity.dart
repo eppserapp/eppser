@@ -80,7 +80,6 @@ class _CreateCommunityState extends State<CreateCommunity> {
       appBar: AppBar(
         title: Text("Topluluklarım",
             style: GoogleFonts.signika(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
               fontSize: 24,
             )),
         centerTitle: true,

@@ -72,7 +72,9 @@ class _storyCardState extends State<storyCard> {
                     );
                   }))))),
       child: Padding(
-        padding: const EdgeInsets.only(top: 80, left: 15),
+        padding: const EdgeInsets.only(
+          top: 80,
+        ),
         child: Column(
           children: [
             if (profImage.isNotEmpty)
@@ -83,7 +85,7 @@ class _storyCardState extends State<storyCard> {
                     image: DecorationImage(
                         image: NetworkImage(profImage), fit: BoxFit.cover),
                     border: Border.all(
-                        color: widget.isSeen == "true"
+                        color: widget.isSeen == true
                             ? Colors.white
                             : const Color.fromRGBO(0, 86, 255, 1),
                         width: 3),
@@ -104,7 +106,7 @@ class _storyCardState extends State<storyCard> {
               ),
             Container(
               padding: const EdgeInsets.only(top: 7),
-              width: 120,
+              width: 100,
               child: Center(
                 child: Text(
                   "$name" + " " + "$surname",
@@ -112,7 +114,7 @@ class _storyCardState extends State<storyCard> {
                   softWrap: false,
                   style: const TextStyle(
                       fontFamily: 'font2',
-                      fontSize: 15,
+                      fontSize: 12,
                       color: Colors.white,
                       overflow: TextOverflow.fade),
                 ),

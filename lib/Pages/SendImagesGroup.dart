@@ -178,6 +178,7 @@ class _SendImagesGroupState extends State<SendImagesGroup> {
                             widget.name,
                             _file!,
                             _textEditingController.text.trim(),
+                            widget.snap['communityId'],
                             widget.snap['groupId'],
                             FirebaseAuth.instance.currentUser!.uid,
                             date,

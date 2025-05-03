@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:iconsax/iconsax.dart';
 
 class MessagePage extends StatefulWidget {
   const MessagePage({super.key});
@@ -227,8 +228,8 @@ class _MessagePageState extends State<MessagePage> {
           ),
 
           // Mesaj listesinin sliver yapısına alınması:
-          MessageBox.getAllMessages() != null &&
-                  UserBox.getAllUserData() != null
+          MessageBox.getAllMessages()!.isNotEmpty &&
+                  UserBox.getAllUserData()!.isNotEmpty
               ? ValueListenableBuilder(
                   valueListenable: Hive.box('messageBox').listenable(),
                   builder: (context, value, child) {
@@ -241,13 +242,17 @@ class _MessagePageState extends State<MessagePage> {
                           var userData;
                           String myId = FirebaseAuth.instance.currentUser!.uid;
                           final messagesMap = (item.value as Map);
-                          final lastMessage = messagesMap.entries.last.value;
-                          String senderId = lastMessage['senderId'];
-                          String receiverId = lastMessage['receiverId'];
-                          if (receiverId == myId) {
-                            userData = senderId;
+                          if (messagesMap.isNotEmpty) {
+                            final lastMessage = messagesMap.entries.last.value;
+                            String senderId = lastMessage['senderId'];
+                            String receiverId = lastMessage['receiverId'];
+                            if (receiverId == myId) {
+                              userData = senderId;
+                            } else {
+                              userData = receiverId;
+                            }
                           } else {
-                            userData = receiverId;
+                            userData = '';
                           }
                           return GestureDetector(
                             onLongPress: () {
@@ -256,7 +261,8 @@ class _MessagePageState extends State<MessagePage> {
                                 context: context,
                                 builder: (context) {
                                   return Dialog(
-                                    backgroundColor: Colors.black,
+                                    backgroundColor: Theme.of(context)
+                                        .scaffoldBackgroundColor,
                                     child: ListView(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 16),
@@ -322,6 +328,7 @@ class _MessagePageState extends State<MessagePage> {
                                                       context, 'Hata: $err');
                                                 }
                                                 Navigator.of(context).pop();
+                                                setState(() {});
                                               },
                                             ),
                                           )
@@ -351,7 +358,31 @@ class _MessagePageState extends State<MessagePage> {
                     );
                   },
                 )
-              : SliverToBoxAdapter(child: SizedBox()),
+              : SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Iconsax.messages_2,
+                          size: 100,
+                          color: Theme.of(context).textTheme.bodyMedium!.color,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Henüz bir mesaj yok!",
+                          style: TextStyle(
+                            fontSize: 24,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium!.color,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
         ],
       ),
     );

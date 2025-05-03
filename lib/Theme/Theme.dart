@@ -25,7 +25,8 @@ ThemeData lightMode = ThemeData(
   floatingActionButtonTheme:
       FloatingActionButtonThemeData(hoverColor: Colors.grey[200]),
   scaffoldBackgroundColor: Colors.white,
-  dialogBackgroundColor: Colors.white,
+  dialogTheme: const DialogTheme(backgroundColor: Colors.white),
+  textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.black)),
   appBarTheme: const AppBarTheme(
       foregroundColor: Colors.white,
       backgroundColor: Colors.white,
@@ -56,7 +57,7 @@ ThemeData darkMode = ThemeData(
     floatingActionButtonTheme:
         FloatingActionButtonThemeData(hoverColor: Colors.grey[200]),
     scaffoldBackgroundColor: Colors.black,
-    dialogBackgroundColor: Colors.black,
+    dialogTheme: const DialogTheme(backgroundColor: Colors.black),
     textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
     appBarTheme: const AppBarTheme(
       foregroundColor: Colors.white,

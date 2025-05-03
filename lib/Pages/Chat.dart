@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:animation_wrappers/animations/faded_scale_animation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -17,6 +16,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -90,6 +90,7 @@ class _ChatState extends State<Chat> {
       }
     });
     fetchAndSaveMessages();
+    fetchAndSaveUserData();
     if (UserBox.getUserData(widget.snap) == null ||
         MessageBox.getMessage(widget.snap) == null) {
       getData();
@@ -136,6 +137,31 @@ class _ChatState extends State<Chat> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  void fetchAndSaveUserData() {
+    final userChatsSubscription = FirebaseFirestore.instance
+        .collection('Users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('Chats')
+        .snapshots()
+        .listen((chatsSnapshot) {
+      for (var chatDoc in chatsSnapshot.docs) {
+        final chatPartnerId = chatDoc.id;
+        // Listen to changes for each chat partner's document.
+        final partnerSubscription = FirebaseFirestore.instance
+            .collection('Users')
+            .doc(chatPartnerId)
+            .snapshots()
+            .listen((partnerDoc) {
+          if (partnerDoc.exists) {
+            UserBox.saveUserData(chatPartnerId, partnerDoc.data());
+          }
+        });
+        _subscriptions.add(partnerSubscription);
+      }
+    });
+    _subscriptions.add(userChatsSubscription);
   }
 
   void fetchAndSaveMessages() {
@@ -733,7 +759,13 @@ class _ChatState extends State<Chat> {
                                                 .scaffoldBackgroundColor,
                                             title: Text("Kopyala"),
                                             trailingIcon: Icon(Iconsax.copy),
-                                            onPressed: () {}),
+                                            onPressed: () {
+                                              Clipboard.setData(ClipboardData(
+                                                  text: message[index]
+                                                      ['text']));
+                                              showSnackBar(
+                                                  context, 'Mesaj kopyalandı!');
+                                            }),
                                         FocusedMenuItem(
                                             backgroundColor: Theme.of(context)
                                                 .scaffoldBackgroundColor,
@@ -760,7 +792,90 @@ class _ChatState extends State<Chat> {
                                               Iconsax.trash,
                                               color: Colors.redAccent,
                                             ),
-                                            onPressed: () {}),
+                                            onPressed: () {
+                                              () async {
+                                                try {
+                                                  // Mesaj ID'sini al
+                                                  String messageId =
+                                                      message[index]
+                                                          ['messageId'];
+
+                                                  // Firebase'den mesajı sil
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('Users')
+                                                      .doc(FirebaseAuth.instance
+                                                          .currentUser!.uid)
+                                                      .collection('Chats')
+                                                      .doc(widget.snap)
+                                                      .collection('Messages')
+                                                      .doc(messageId)
+                                                      .delete();
+
+                                                  // Check if the Messages collection is empty
+                                                  final messagesCollection =
+                                                      FirebaseFirestore.instance
+                                                          .collection('Users')
+                                                          .doc(FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .uid)
+                                                          .collection('Chats')
+                                                          .doc(widget.snap)
+                                                          .collection(
+                                                              'Messages');
+                                                  final remainingMessages =
+                                                      await messagesCollection
+                                                          .get();
+
+                                                  if (remainingMessages
+                                                      .docs.isEmpty) {
+                                                    // Delete the entire chat document if no messages remain
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('Users')
+                                                        .doc(FirebaseAuth
+                                                            .instance
+                                                            .currentUser!
+                                                            .uid)
+                                                        .collection('Chats')
+                                                        .doc(widget.snap)
+                                                        .delete();
+                                                  }
+
+                                                  // Local messageBox'tan mesajı sil
+                                                  final messagesMap =
+                                                      MessageBox.getMessage(
+                                                          widget.snap);
+                                                  if (messagesMap != null) {
+                                                    messagesMap.removeWhere(
+                                                        (key, value) =>
+                                                            value[
+                                                                'messageId'] ==
+                                                            messageId);
+                                                    if (messagesMap.isEmpty) {
+                                                      await MessageBox
+                                                          .deleteMessage(
+                                                              widget.snap);
+
+                                                      await UserBox.deleteUser(
+                                                          widget.snap);
+                                                    } else {
+                                                      await MessageBox
+                                                          .saveMessageData(
+                                                              widget.snap,
+                                                              messagesMap);
+                                                    }
+                                                  }
+
+                                                  showSnackBar(context,
+                                                      'Mesaj silindi.');
+                                                } catch (e) {
+                                                  showSnackBar(context,
+                                                      'Mesaj silinirken hata oluştu.');
+                                                }
+                                              }();
+                                            }),
                                       ],
                                       onPressed: () {},
                                       child: Padding(
@@ -977,7 +1092,50 @@ class _ChatState extends State<Chat> {
                                               Iconsax.trash,
                                               color: Colors.redAccent,
                                             ),
-                                            onPressed: () {}),
+                                            onPressed: () {
+                                              () async {
+                                                try {
+                                                  // Mesaj ID'sini al
+                                                  String messageId =
+                                                      message[index]
+                                                          ['messageId'];
+
+                                                  // Firebase'den mesajı sil
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('Users')
+                                                      .doc(FirebaseAuth.instance
+                                                          .currentUser!.uid)
+                                                      .collection('Chats')
+                                                      .doc(widget.snap)
+                                                      .collection('Messages')
+                                                      .doc(messageId)
+                                                      .delete();
+
+                                                  // Local messageBox'tan mesajı sil
+                                                  final messagesMap =
+                                                      MessageBox.getMessage(
+                                                          widget.snap);
+                                                  if (messagesMap != null) {
+                                                    messagesMap.removeWhere(
+                                                        (key, value) =>
+                                                            value[
+                                                                'messageId'] ==
+                                                            messageId);
+                                                    await MessageBox
+                                                        .saveMessageData(
+                                                            widget.snap,
+                                                            messagesMap);
+                                                  }
+
+                                                  showSnackBar(context,
+                                                      'Mesaj silindi.');
+                                                } catch (e) {
+                                                  showSnackBar(context,
+                                                      'Mesaj silinirken hata oluştu.');
+                                                }
+                                              }();
+                                            }),
                                       ],
                                       onPressed: () {},
                                       child: Padding(
@@ -1025,35 +1183,6 @@ class _ChatState extends State<Chat> {
                             );
                           },
                         ),
-                        if (_scrollController.hasClients && seen)
-                          if (_scrollController.position.pixels <=
-                              _scrollController.position.maxScrollExtent - 200)
-                            if (seen)
-                              Align(
-                                alignment: Alignment.topCenter,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: FadedScaleAnimation(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.green,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      height: 25,
-                                      width: 150,
-                                      child: const Text(
-                                        "Yeni mesaj!",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
                       ],
                     );
                   },
@@ -1083,7 +1212,7 @@ class _ChatState extends State<Chat> {
                                   },
                                   icon: const Icon(
                                     Iconsax.emoji_happy,
-                                    size: 30,
+                                    size: 32,
                                   )),
                               Expanded(
                                 child: Padding(
@@ -1100,6 +1229,52 @@ class _ChatState extends State<Chat> {
                                     ),
                                     controller: _textEditingController,
                                     maxLines: null,
+                                    contextMenuBuilder: (BuildContext context,
+                                        EditableTextState editableTextState) {
+                                      return AdaptiveTextSelectionToolbar(
+                                        anchors: editableTextState
+                                            .contextMenuAnchors,
+                                        children: [
+                                          TextSelectionToolbarTextButton(
+                                            padding: const EdgeInsets.all(8.0),
+                                            onPressed: () {
+                                              editableTextState.copySelection(
+                                                  SelectionChangedCause
+                                                      .toolbar);
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text("Kopyala"),
+                                          ),
+                                          TextSelectionToolbarTextButton(
+                                            padding: const EdgeInsets.all(8.0),
+                                            onPressed: () {
+                                              editableTextState.cutSelection(
+                                                  SelectionChangedCause
+                                                      .toolbar);
+                                            },
+                                            child: const Text("Kes"),
+                                          ),
+                                          TextSelectionToolbarTextButton(
+                                            padding: const EdgeInsets.all(8.0),
+                                            onPressed: () {
+                                              editableTextState.pasteText(
+                                                  SelectionChangedCause
+                                                      .toolbar);
+                                            },
+                                            child: const Text("Yapıştır"),
+                                          ),
+                                          TextSelectionToolbarTextButton(
+                                            padding: const EdgeInsets.all(8.0),
+                                            onPressed: () {
+                                              editableTextState.selectAll(
+                                                  SelectionChangedCause
+                                                      .toolbar);
+                                            },
+                                            child: const Text("Tümünü Seç"),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                     decoration: InputDecoration(
                                       focusColor:
                                           Theme.of(context).iconTheme.color,
