@@ -67,7 +67,6 @@ class _usersPageState extends State<usersPage> with TickerProviderStateMixin {
             ),
           )
         : Scaffold(
-            backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: Colors.black,
               leading: IconButton(

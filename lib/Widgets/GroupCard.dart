@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eppser/Database/Groups.dart';
 import 'package:eppser/Database/GroupsMessage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +22,7 @@ class GroupCard extends StatefulWidget {
 class _GroupCardState extends State<GroupCard> {
   var groupData;
   var groupMessage;
+  StreamSubscription? subscription;
   String name = "";
   bool isLoading = false;
   @override
@@ -26,6 +30,36 @@ class _GroupCardState extends State<GroupCard> {
     super.initState();
     getData();
     dataHive();
+    listenGroupMessages();
+  }
+
+  void listenGroupMessages() {
+    subscription?.cancel();
+    subscription = FirebaseFirestore.instance
+        .collection('Community')
+        .doc(widget.communityId)
+        .collection('Groups')
+        .doc(widget.groupId)
+        .collection('Messages')
+        .orderBy('date')
+        .snapshots()
+        .listen((snapshot) {
+      Map<String, dynamic> updatedMessages = {};
+      int index = 0;
+      for (var doc in snapshot.docs) {
+        var data = doc.data();
+        // Firestore'dan gelen Timestamp'i DateTime'a çevir
+        if (data['date'] is Timestamp) {
+          data['date'] = (data['date'] as Timestamp).toDate();
+        }
+        updatedMessages[index.toString()] = data;
+        index++;
+      }
+      GroupMessageBox.saveGroupMessage(widget.groupId, updatedMessages);
+      setState(() {
+        groupMessage = updatedMessages;
+      });
+    });
   }
 
   getData() async {
@@ -33,16 +67,17 @@ class _GroupCardState extends State<GroupCard> {
       isLoading = true;
     });
     try {
-      var Snap = await FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('Community')
           .doc(widget.communityId)
           .collection('Groups')
           .doc(widget.groupId)
-          .get();
-
-      groupData = Snap.data();
-
-      setState(() {});
+          .snapshots()
+          .listen((snap) {
+        groupData = snap.data();
+        GroupBox.saveGroupData(widget.groupId, groupData);
+        setState(() {});
+      });
     } catch (e) {
       print(e.toString());
     }
@@ -76,6 +111,12 @@ class _GroupCardState extends State<GroupCard> {
       // Diğer durumlar için tarih formatını kullan
       return DateFormat.yMMMMd('TR_tr').format(localDateTime);
     }
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -141,23 +182,66 @@ class _GroupCardState extends State<GroupCard> {
             ],
           )
         : GestureDetector(
-            onLongPress: () {
-              showDialog(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  backgroundColor: Colors.white,
-                  surfaceTintColor: Colors.white,
-                  children: [
-                    SimpleDialogOption(
-                      padding: const EdgeInsets.all(10),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Sessize al'),
-                    )
-                  ],
-                ),
-              );
+            onLongPress: () async {
+              if ((groupData['admins'] as List)
+                  .contains(FirebaseAuth.instance.currentUser!.uid)) {
+                bool? confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    title: Text(
+                      "Grubu Sil",
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium!.color),
+                    ),
+                    content: Text("Bu grubu silmek istediğine emin misin?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          "İptal",
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .color),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          "Sil",
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .color),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  try {
+                    await FirebaseFirestore.instance
+                        .collection('Community')
+                        .doc(groupData['communityId'])
+                        .collection('Groups')
+                        .doc(groupData['groupId'])
+                        .delete();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Grup silindi')),
+                    );
+                  } catch (e) {
+                    print("Silme hatası: $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Silme işlemi başarısız')),
+                    );
+                  }
+                }
+              }
             },
             child: ValueListenableBuilder<Box<dynamic>>(
               valueListenable: Hive.box('groupBox').listenable(),
@@ -301,51 +385,6 @@ class _GroupCardState extends State<GroupCard> {
                                             ],
                                           ),
                                         ),
-                                      if (groupMessage.values
-                                              .where((message) =>
-                                                  !(message['isSeen'] as List)
-                                                      .contains(FirebaseAuth
-                                                          .instance
-                                                          .currentUser!
-                                                          .uid) &&
-                                                  message['senderId'] !=
-                                                      FirebaseAuth.instance
-                                                          .currentUser?.uid)
-                                              .length >
-                                          0)
-                                        Container(
-                                            margin: const EdgeInsets.only(
-                                              left: 3,
-                                            ),
-                                            height: 12,
-                                            width: 12,
-                                            decoration: BoxDecoration(
-                                                color: Colors.green,
-                                                borderRadius:
-                                                    BorderRadius.circular(50)),
-                                            child: Center(
-                                              child: Text(
-                                                groupMessage.values
-                                                    .where((message) =>
-                                                        !(message['isSeen']
-                                                                as List)
-                                                            .contains(
-                                                                FirebaseAuth
-                                                                    .instance
-                                                                    .currentUser!
-                                                                    .uid) &&
-                                                        message['senderId'] !=
-                                                            FirebaseAuth
-                                                                .instance
-                                                                .currentUser
-                                                                ?.uid)
-                                                    .length
-                                                    .toString(),
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 8),
-                                              ),
-                                            ))
                                     ],
                                   ),
                                 ),
@@ -355,12 +394,21 @@ class _GroupCardState extends State<GroupCard> {
                       ),
                     ),
                     if (groupMessage != null && groupMessage.values.isNotEmpty)
-                      if (groupMessage.values.last['date'] != null)
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10, left: 10),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 3),
                             child: Text(
-                              getTimeAgo(groupMessage.values.last['date']),
+                              (() {
+                                final dateValue =
+                                    groupMessage.values.last['date'];
+                                final dateTime = dateValue is Timestamp
+                                    ? dateValue.toDate()
+                                    : dateValue;
+                                return getTimeAgo(dateTime);
+                              }()),
                               style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
@@ -370,7 +418,40 @@ class _GroupCardState extends State<GroupCard> {
                                   fontWeight: FontWeight.w500),
                             ),
                           ),
-                        )
+                          if (groupMessage.values
+                                  .where((message) =>
+                                      !(message['isSeen'] as List).contains(
+                                          FirebaseAuth
+                                              .instance.currentUser!.uid) &&
+                                      message['senderId'] !=
+                                          FirebaseAuth
+                                              .instance.currentUser?.uid)
+                                  .length >
+                              0)
+                            Container(
+                                height: 24,
+                                width: 24,
+                                decoration: BoxDecoration(
+                                    color: const Color.fromRGBO(0, 86, 255, 1),
+                                    borderRadius: BorderRadius.circular(10)),
+                                child: Center(
+                                  child: Text(
+                                    groupMessage.values
+                                        .where((message) =>
+                                            !(message['isSeen'] as List)
+                                                .contains(FirebaseAuth.instance
+                                                    .currentUser!.uid) &&
+                                            message['senderId'] !=
+                                                FirebaseAuth
+                                                    .instance.currentUser?.uid)
+                                        .length
+                                        .toString(),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 10),
+                                  ),
+                                )),
+                        ],
+                      )
                   ],
                 );
               },

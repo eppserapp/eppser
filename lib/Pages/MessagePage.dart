@@ -67,6 +67,7 @@ class _MessagePageState extends State<MessagePage> {
             .listen((partnerDoc) {
           if (partnerDoc.exists) {
             UserBox.saveUserData(chatPartnerId, partnerDoc.data());
+            setState(() {});
           }
         });
         _subscriptions.add(partnerSubscription);
@@ -135,6 +136,7 @@ class _MessagePageState extends State<MessagePage> {
 
           // Update the local storage.
           await MessageBox.saveMessageData(chatPartnerId, newMessagesMap);
+          setState(() {});
         });
         _subscriptions.add(messagesSubscription);
       }

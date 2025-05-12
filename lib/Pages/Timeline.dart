@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:eppser/Pages/CreateEvent.dart';
+import 'package:eppser/Pages/EventsView.dart';
 import 'package:eppser/Pages/StoryPage.dart';
 import 'package:eppser/Pages/addStory.dart';
 import 'package:eppser/Widgets/storyCard.dart';
@@ -271,6 +272,7 @@ class _TimelineState extends State<Timeline> {
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('Events')
+                      .where('approved', isEqualTo: true)
                       .orderBy('dateCreated', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -307,13 +309,14 @@ class _TimelineState extends State<Timeline> {
                         var data = snapshot.data!.docs[index].data()
                             as Map<String, dynamic>;
                         return GestureDetector(
-                          // onTap: () => Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => CommunityPage(
-                          //         communityId: data['communityId']),
-                          //   ),
-                          // ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EventsView(
+                                data: data,
+                              ),
+                            ),
+                          ),
                           child: Column(
                             children: [
                               Stack(
@@ -425,58 +428,110 @@ class _TimelineState extends State<Timeline> {
                                       ),
                                       child: Row(
                                         children: [
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(left: 10),
-                                            child: data['photoUrl'] != null
-                                                ? ClipRRect(
+                                          FutureBuilder<DocumentSnapshot>(
+                                            future: FirebaseFirestore.instance
+                                                .collection('Users')
+                                                .doc(data['createdBy'])
+                                                .get(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return Container(
+                                                  height: 60,
+                                                  width: 60,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            24),
+                                                  ),
+                                                );
+                                              }
+                                              if (snapshot.hasData &&
+                                                  snapshot.data!.exists) {
+                                                var userData =
+                                                    snapshot.data!.data()
+                                                        as Map<String, dynamic>;
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 10),
+                                                  child: ClipRRect(
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             24),
                                                     child: SizedBox(
                                                       height: 60,
                                                       width: 60,
-                                                      child: CachedNetworkImage(
-                                                        placeholderFadeInDuration:
-                                                            const Duration(
-                                                                microseconds:
-                                                                    1),
-                                                        fadeOutDuration:
-                                                            const Duration(
-                                                                microseconds:
-                                                                    1),
-                                                        fadeInDuration:
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    1),
-                                                        imageUrl:
-                                                            data['photoUrl'],
-                                                        fit: BoxFit.cover,
-                                                        errorWidget: (context,
-                                                                url, error) =>
-                                                            const Icon(
-                                                                Icons.error,
+                                                      child: userData[
+                                                                  'profImage'] !=
+                                                              null
+                                                          ? CachedNetworkImage(
+                                                              placeholderFadeInDuration:
+                                                                  const Duration(
+                                                                      microseconds:
+                                                                          1),
+                                                              fadeOutDuration:
+                                                                  const Duration(
+                                                                      microseconds:
+                                                                          1),
+                                                              fadeInDuration:
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          1),
+                                                              imageUrl: userData[
+                                                                  'profImage'],
+                                                              fit: BoxFit.cover,
+                                                              errorWidget: (context,
+                                                                      url,
+                                                                      error) =>
+                                                                  const Icon(
+                                                                      Icons
+                                                                          .error,
+                                                                      color: Colors
+                                                                          .black),
+                                                            )
+                                                          : Container(
+                                                              decoration: BoxDecoration(
+                                                                  color: const Color
+                                                                      .fromRGBO(
+                                                                      0,
+                                                                      86,
+                                                                      255,
+                                                                      1),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              24)),
+                                                              child: const Icon(
+                                                                Iconsax.people,
                                                                 color: Colors
-                                                                    .black),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : Container(
-                                                    height: 60,
-                                                    width: 60,
-                                                    decoration: BoxDecoration(
-                                                        color: const Color
-                                                            .fromRGBO(
-                                                            0, 86, 255, 1),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(24)),
-                                                    child: const Icon(
-                                                      Iconsax.people,
-                                                      color: Colors.white,
-                                                      size: 50,
+                                                                    .white,
+                                                                size: 50,
+                                                              ),
+                                                            ),
                                                     ),
                                                   ),
+                                                );
+                                              } else {
+                                                return Container(
+                                                  height: 60,
+                                                  width: 60,
+                                                  decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                              0, 86, 255, 1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              24)),
+                                                  child: const Icon(
+                                                    Iconsax.people,
+                                                    color: Colors.white,
+                                                    size: 50,
+                                                  ),
+                                                );
+                                              }
+                                            },
                                           ),
                                           const SizedBox(width: 10),
                                           Expanded(

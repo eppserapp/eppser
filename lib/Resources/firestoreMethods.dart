@@ -636,6 +636,7 @@ class FireStoreMethods {
         _firestore.collection('Community').doc(communityId).set({
           'name': name,
           'approved': false,
+          'block': [],
           'uid': uid,
           'communityId': communityId,
           'admins': admins,
@@ -652,6 +653,7 @@ class FireStoreMethods {
             .set({
           'name': "Duyurular",
           'uid': uid,
+          'onlyAdmins': false,
           'groupId': groupId,
           'community': communityId,
           'admins': admins,
@@ -666,6 +668,7 @@ class FireStoreMethods {
         _firestore.collection('Community').doc(communityId).set({
           'name': name,
           'approved': false,
+          'block': [],
           'uid': uid,
           'communityId': communityId,
           'admins': admins,
@@ -682,6 +685,7 @@ class FireStoreMethods {
             .set({
           'name': "Duyurular",
           'uid': uid,
+          'onlyAdmins': false,
           'groupId': groupId,
           'communityId': communityId,
           'admins': admins,
@@ -720,8 +724,9 @@ class FireStoreMethods {
             .set({
           'name': name,
           'uid': uid,
+          'onlyAdmins': false,
           'groupId': groupId,
-          'community': communityId,
+          'communityId': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': photoUrl,
@@ -739,8 +744,9 @@ class FireStoreMethods {
             .set({
           'name': name,
           'uid': uid,
+          'onlyAdmins': false,
           'groupId': groupId,
-          'community': communityId,
+          'communityId': communityId,
           'admins': admins,
           'members': members,
           'photoUrl': null,
@@ -771,6 +777,7 @@ class FireStoreMethods {
       }
       await _firestore.collection('Events').doc(eventId).set({
         'eventId': eventId,
+        'approved': false,
         'title': title,
         'imageUrl': imageUrl,
         'description': description,

@@ -105,6 +105,7 @@ class _ChatState extends State<Chat> {
       }
     });
     isSeen();
+    myisSeen();
   }
 
   @override
@@ -269,6 +270,29 @@ class _ChatState extends State<Chat> {
         .then((value) => value.docs.forEach((element) {
               element.reference.update({'isSeen': true});
             }));
+    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+    final messagesMap = MessageBox.getMessage(widget.snap);
+    if (messagesMap == null) return;
+
+    List messagesList = List.from(messagesMap.values);
+
+    List updatedMessagesList = messagesList.map((message) {
+      if (message['senderId'] != currentUserId && message['isSeen'] == false) {
+        return {
+          ...message,
+          'isSeen': true,
+        };
+      }
+      return message;
+    }).toList();
+
+    var newMessagesMap = {
+      for (var i = 0; i < updatedMessagesList.length; i++)
+        i: updatedMessagesList[i],
+    };
+
+    await MessageBox.saveMessageData(widget.snap, newMessagesMap);
   }
 
   @override
@@ -289,302 +313,283 @@ class _ChatState extends State<Chat> {
             : Scaffold(
                 backgroundColor: Colors.transparent,
                 appBar: AppBar(
-                    toolbarHeight: 70,
-                    scrolledUnderElevation: 0,
-                    backgroundColor:
-                        Theme.of(context).appBarTheme.backgroundColor,
-                    automaticallyImplyLeading: false,
-                    titleSpacing: -10,
-                    title: Row(
-                      children: [
-                        InkWell(
-                          onTap: () => Navigator.pop(context),
-                          child: Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 5),
-                                child: IconButton(
-                                  icon: Icon(
-                                    Iconsax.arrow_left_2,
-                                    color: Theme.of(context).iconTheme.color,
-                                    size: 32,
-                                  ),
-                                  onPressed: () => Navigator.pop(context),
+                  toolbarHeight: 70,
+                  scrolledUnderElevation: 0,
+                  backgroundColor:
+                      Theme.of(context).appBarTheme.backgroundColor,
+                  automaticallyImplyLeading: false,
+                  titleSpacing: -10,
+                  title: Row(
+                    children: [
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 5),
+                              child: IconButton(
+                                icon: Icon(
+                                  Iconsax.arrow_left_2,
+                                  color: Theme.of(context).iconTheme.color,
+                                  size: 32,
                                 ),
+                                onPressed: () => Navigator.pop(context),
                               ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 40, right: 10),
-                                child: userData['profImage'] != null
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(50),
-                                        child: SizedBox(
-                                          height: 40,
-                                          width: 40,
-                                          child: CachedNetworkImage(
-                                            filterQuality: FilterQuality.low,
-                                            placeholderFadeInDuration:
-                                                const Duration(microseconds: 1),
-                                            fadeOutDuration:
-                                                const Duration(microseconds: 1),
-                                            fadeInDuration:
-                                                const Duration(milliseconds: 1),
-                                            imageUrl: userData['profImage'],
-                                            fit: BoxFit.cover,
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error,
-                                                        color: Colors.black),
-                                          ),
-                                        ),
-                                      )
-                                    : Container(
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 40, right: 10),
+                              child: userData['profImage'] != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(50),
+                                      child: SizedBox(
                                         height: 40,
                                         width: 40,
-                                        decoration: BoxDecoration(
-                                            color: const Color.fromRGBO(
-                                                0, 86, 255, 1),
-                                            borderRadius:
-                                                BorderRadius.circular(50)),
-                                        child: const Icon(
-                                          Iconsax.user,
-                                          color: Colors.white,
-                                          size: 30,
+                                        child: CachedNetworkImage(
+                                          filterQuality: FilterQuality.low,
+                                          placeholderFadeInDuration:
+                                              const Duration(microseconds: 1),
+                                          fadeOutDuration:
+                                              const Duration(microseconds: 1),
+                                          fadeInDuration:
+                                              const Duration(milliseconds: 1),
+                                          imageUrl: userData['profImage'],
+                                          fit: BoxFit.cover,
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error,
+                                                  color: Colors.black),
                                         ),
                                       ),
-                              ),
-                            ],
-                          ),
+                                    )
+                                  : Container(
+                                      height: 40,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                          color: const Color.fromRGBO(
+                                              0, 86, 255, 1),
+                                          borderRadius:
+                                              BorderRadius.circular(50)),
+                                      child: const Icon(
+                                        Iconsax.user,
+                                        color: Colors.white,
+                                        size: 30,
+                                      ),
+                                    ),
+                            ),
+                          ],
                         ),
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    Profile(uid: userData['uid']),
-                              )),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width / 2,
-                                child: Text(
-                                  userData['name'] + " " + userData['surname'],
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                      overflow: TextOverflow.ellipsis,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              ),
-                              // const Text(
-                              //   'Çevrimiçi',
-                              //   style: TextStyle(
-                              //       color: Colors.green, fontSize: 12),
-                              // )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      InkWell(
-                        child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Icon(
-                              Iconsax.call,
-                              color: Theme.of(context).iconTheme.color,
-                              size: 24,
-                            )),
                       ),
-                      Padding(
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  Profile(uid: userData['uid']),
+                            )),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 2,
+                              child: Text(
+                                userData['name'] + " " + userData['surname'],
+                                maxLines: 1,
+                                style: TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                            // const Text(
+                            //   'Çevrimiçi',
+                            //   style: TextStyle(
+                            //       color: Colors.green, fontSize: 12),
+                            // )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    InkWell(
+                      child: Padding(
                           padding: const EdgeInsets.only(right: 10),
                           child: Icon(
-                            Iconsax.video,
+                            Iconsax.call,
                             color: Theme.of(context).iconTheme.color,
-                            size: 26,
+                            size: 24,
                           )),
-                      FocusedMenuHolder(
-                        child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Icon(
-                              Iconsax.more,
+                    ),
+                    Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Icon(
+                          Iconsax.video,
+                          color: Theme.of(context).iconTheme.color,
+                          size: 26,
+                        )),
+                    FocusedMenuHolder(
+                      child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: Icon(
+                            Iconsax.more,
+                            color: Theme.of(context).iconTheme.color,
+                            size: 28,
+                          )),
+                      menuWidth: MediaQuery.of(context).size.width * 0.55,
+                      blurSize: 0.0,
+                      menuItemExtent: 45,
+                      menuBoxDecoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(15.0))),
+                      duration: Duration(milliseconds: 100),
+                      animateMenuItems: true,
+                      blurBackgroundColor: Colors.white.withOpacity(0.0),
+                      bottomOffsetHeight: 100,
+                      openWithTap: true,
+                      menuItems: <FocusedMenuItem>[
+                        FocusedMenuItem(
+                            backgroundColor:
+                                Theme.of(context).scaffoldBackgroundColor,
+                            title: Text("Bul"),
+                            trailingIcon: Icon(
+                              Iconsax.search_normal_1,
                               color: Theme.of(context).iconTheme.color,
-                              size: 28,
-                            )),
-                        menuWidth: MediaQuery.of(context).size.width * 0.55,
-                        blurSize: 0.0,
-                        menuItemExtent: 45,
-                        menuBoxDecoration: BoxDecoration(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(15.0))),
-                        duration: Duration(milliseconds: 100),
-                        animateMenuItems: true,
-                        blurBackgroundColor: Colors.white.withOpacity(0.0),
-                        bottomOffsetHeight: 100,
-                        openWithTap: true,
-                        menuItems: <FocusedMenuItem>[
-                          FocusedMenuItem(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: Text("Bul"),
-                              trailingIcon: Icon(
-                                Iconsax.search_normal_1,
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                              onPressed: () {}),
-                          FocusedMenuItem(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: Text("Duvar Kağıdını Değiştir"),
-                              trailingIcon: Icon(
-                                Iconsax.gallery,
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                              onPressed: () {}),
-                          FocusedMenuItem(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: Text("Sohbeti Temizle"),
-                              trailingIcon: Icon(
-                                Iconsax.eraser_1,
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                              onPressed: () {}),
-                          FocusedMenuItem(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: Text(
-                                "Sohbeti Sil",
-                                style: TextStyle(color: Colors.redAccent),
-                              ),
-                              trailingIcon: Icon(
-                                Icons.delete,
-                                color: Colors.redAccent,
-                              ),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      backgroundColor: Theme.of(context)
-                                          .scaffoldBackgroundColor,
-                                      title: Text(
-                                        "Sohbeti Sil",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color),
-                                      ),
-                                      contentTextStyle: TextStyle(
+                            ),
+                            onPressed: () {}),
+                        FocusedMenuItem(
+                            backgroundColor:
+                                Theme.of(context).scaffoldBackgroundColor,
+                            title: Text("Duvar Kağıdını Değiştir"),
+                            trailingIcon: Icon(
+                              Iconsax.gallery,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            onPressed: () {}),
+                        FocusedMenuItem(
+                            backgroundColor:
+                                Theme.of(context).scaffoldBackgroundColor,
+                            title: Text("Sohbeti Temizle"),
+                            trailingIcon: Icon(
+                              Iconsax.eraser_1,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            onPressed: () {}),
+                        FocusedMenuItem(
+                            backgroundColor:
+                                Theme.of(context).scaffoldBackgroundColor,
+                            title: Text(
+                              "Sohbeti Sil",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                            trailingIcon: Icon(
+                              Icons.delete,
+                              color: Colors.redAccent,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    backgroundColor: Theme.of(context)
+                                        .scaffoldBackgroundColor,
+                                    title: Text(
+                                      "Sohbeti Sil",
+                                      style: TextStyle(
                                           color: Theme.of(context)
                                               .textTheme
                                               .bodyMedium
                                               ?.color),
-                                      content: const Text(
-                                          "Bu sohbeti silmek istediğinize emin misiniz?"),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: Text("Hayır",
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium
-                                                      ?.color)),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            () async {
-                                              try {
-                                                String currentUserId =
-                                                    FirebaseAuth.instance
-                                                        .currentUser!.uid;
-                                                String chatPartnerId =
-                                                    userData['uid'];
-                                                // Delete all messages in the conversation
-                                                final messagesSnapshot =
-                                                    await FirebaseFirestore
-                                                        .instance
-                                                        .collection('Users')
-                                                        .doc(currentUserId)
-                                                        .collection('Chats')
-                                                        .doc(chatPartnerId)
-                                                        .collection('Messages')
-                                                        .get();
-                                                final batch = FirebaseFirestore
-                                                    .instance
-                                                    .batch();
-                                                for (var doc
-                                                    in messagesSnapshot.docs) {
-                                                  batch.delete(doc.reference);
-                                                }
-                                                await batch.commit();
-
-                                                // Delete the chat document (conversation metadata)
-                                                await FirebaseFirestore.instance
-                                                    .collection('Users')
-                                                    .doc(currentUserId)
-                                                    .collection('Chats')
-                                                    .doc(chatPartnerId)
-                                                    .delete();
-
-                                                // Delete the chat from the local MessageBox.
-                                                await MessageBox.deleteMessage(
-                                                    chatPartnerId);
-
-                                                showSnackBar(
-                                                    context, 'Sohbet Silindi!');
-                                                Navigator.pop(context);
-                                                Navigator.pop(context);
-                                              } catch (e) {
-                                                print(e.toString());
-                                                Navigator.pop(context);
+                                    ),
+                                    contentTextStyle: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color),
+                                    content: const Text(
+                                        "Bu sohbeti silmek istediğinize emin misiniz?"),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("Hayır",
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color)),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          () async {
+                                            try {
+                                              String currentUserId =
+                                                  FirebaseAuth.instance
+                                                      .currentUser!.uid;
+                                              String chatPartnerId =
+                                                  userData['uid'];
+                                              // Delete all messages in the conversation
+                                              final messagesSnapshot =
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('Users')
+                                                      .doc(currentUserId)
+                                                      .collection('Chats')
+                                                      .doc(chatPartnerId)
+                                                      .collection('Messages')
+                                                      .get();
+                                              final batch = FirebaseFirestore
+                                                  .instance
+                                                  .batch();
+                                              for (var doc
+                                                  in messagesSnapshot.docs) {
+                                                batch.delete(doc.reference);
                                               }
-                                            }();
-                                          },
-                                          child: const Text("Evet",
-                                              style: TextStyle(
-                                                  color: Colors.redAccent)),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }),
-                        ],
-                        onPressed: () {},
-                      ),
-                    ],
-                    bottom: isConnected == false
-                        ? PreferredSize(
-                            preferredSize: const Size(double.infinity, 30),
-                            child: Container(
-                              width: double.infinity,
-                              height: 30,
-                              color: Colors.red,
-                              child: const Center(
-                                child: Text(
-                                  'İnternet bağlantısı yok',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          )
-                        : const PreferredSize(
-                            preferredSize: Size(0, 0),
-                            child: SizedBox(),
-                          )),
+                                              await batch.commit();
+
+                                              // Delete the chat document (conversation metadata)
+                                              await FirebaseFirestore.instance
+                                                  .collection('Users')
+                                                  .doc(currentUserId)
+                                                  .collection('Chats')
+                                                  .doc(chatPartnerId)
+                                                  .delete();
+
+                                              // Delete the chat from the local MessageBox.
+                                              await MessageBox.deleteMessage(
+                                                  chatPartnerId);
+
+                                              showSnackBar(
+                                                  context, 'Sohbet Silindi!');
+                                              Navigator.pop(context);
+                                              Navigator.pop(context);
+                                            } catch (e) {
+                                              print(e.toString());
+                                              Navigator.pop(context);
+                                            }
+                                          }();
+                                        },
+                                        child: const Text("Evet",
+                                            style: TextStyle(
+                                                color: Colors.redAccent)),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }),
+                      ],
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
                 body: ValueListenableBuilder(
                   valueListenable: Hive.box('messageBox').listenable(),
                   builder: (context, value, child) {
@@ -593,16 +598,11 @@ class _ChatState extends State<Chat> {
                     }
 
                     if (_scrollController.hasClients) {
-                      if (_scrollController.position.maxScrollExtent == 0) {
-                        if (message.values
-                            .any((element) => element['isSeen'] == false)) {
-                          isSeen();
-                          myisSeen();
-                        }
-                      }
                       _scrollController.position.addListener(() {
-                        if (_scrollController.position.pixels >=
-                            _scrollController.position.maxScrollExtent - 200) {
+                        if (_scrollController.position.maxScrollExtent == 0 ||
+                            _scrollController.position.pixels >=
+                                _scrollController.position.maxScrollExtent -
+                                    200) {
                           if (mounted) {
                             if (message.values
                                 .any((element) => element['isSeen'] == false)) {

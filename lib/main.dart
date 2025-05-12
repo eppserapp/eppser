@@ -75,9 +75,24 @@ class MyApp extends StatelessWidget {
         Locale('tr', 'TR'),
       ],
       theme: Provider.of<ThemeProvider>(context).themeData,
-      home: FirebaseAuth.instance.currentUser == null
-          ? const LandingScreen()
-          : bottomBar(),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.hasData) {
+              return bottomBar();
+            }
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.black,
+              ),
+            );
+          }
+          return const LandingScreen();
+        },
+      ),
     );
   }
 }

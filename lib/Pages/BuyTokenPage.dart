@@ -12,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:marqueer/marqueer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BuyTokenPage extends StatefulWidget {
   @override
@@ -322,436 +323,523 @@ class _BuyTokenPageState extends State<BuyTokenPage> {
           backgroundColor: Colors.black,
           centerTitle: true,
           title: const Text("Satın Al")),
-      body: Container(
-        decoration: const BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage(
-                  'assets/images/background.jpg',
-                ),
-                fit: BoxFit.cover)),
-        child: Column(
-          children: [
-            ApiData == null
-                ? const SizedBox()
-                : Center(
-                    child: Container(
-                      height: 50.0,
-                      color: Colors.black,
-                      child: Marqueer(
-                        interaction: false,
-                        pps: 50,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.circle,
-                              color: Colors.amber,
-                              size: 24,
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage(
+                      'assets/images/background.jpg',
+                    ),
+                    fit: BoxFit.cover)),
+            child: Column(
+              children: [
+                ApiData == null
+                    ? const SizedBox()
+                    : Center(
+                        child: Container(
+                          height: 50.0,
+                          color: Colors.black,
+                          child: Marqueer(
+                            interaction: false,
+                            pps: 50,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.circle,
+                                  color: Colors.amber,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '₺${ApiData["gram-altin"]["Alış"]}',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 20.0),
+                                ),
+                                const SizedBox(width: 20),
+                                Image.asset(
+                                  'assets/svg/usd.png',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '₺${ApiData["USD"]["Alış"]}',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 20.0),
+                                ),
+                                const SizedBox(width: 20),
+                                SvgPicture.asset(
+                                  'assets/svg/xau.svg',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '${ApiData["ons"]["Alış"]}',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 20.0),
+                                ),
+                                const SizedBox(width: 20),
+                                Image.asset(
+                                  'assets/svg/eur.png',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '₺${ApiData["EUR"]["Alış"]}',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 20.0),
+                                ),
+                                const SizedBox(width: 20),
+                                Image.asset(
+                                  'assets/svg/gbp.png',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '₺${ApiData["GBP"]["Alış"]}',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 20.0),
+                                ),
+                                const SizedBox(width: 20),
+                              ],
                             ),
-                            const SizedBox(width: 5),
-                            Text(
-                              '₺${ApiData["gram-altin"]["Alış"]}',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 20.0),
-                            ),
-                            const SizedBox(width: 20),
-                            Image.asset(
-                              'assets/svg/usd.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              '₺${ApiData["USD"]["Alış"]}',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 20.0),
-                            ),
-                            const SizedBox(width: 20),
-                            SvgPicture.asset(
-                              'assets/svg/xau.svg',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              '${ApiData["ons"]["Alış"]}',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 20.0),
-                            ),
-                            const SizedBox(width: 20),
-                            Image.asset(
-                              'assets/svg/eur.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              '₺${ApiData["EUR"]["Alış"]}',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 20.0),
-                            ),
-                            const SizedBox(width: 20),
-                            Image.asset(
-                              'assets/svg/gbp.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              '₺${ApiData["GBP"]["Alış"]}',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 20.0),
-                            ),
-                            const SizedBox(width: 20),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                if (totalTokensForSale != 0)
+                  const SizedBox(
+                    height: 10,
                   ),
-            if (totalTokensForSale != 0)
-              const SizedBox(
-                height: 10,
-              ),
-            if (totalTokensForSale != 0)
-              Container(
-                decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    color: Colors.black),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        '${NumberFormat("#,###.##", "en_US").format(totalTokensForSale)} token satışta!',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text(
-                                'Emin misiniz?',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .color,
-                                    fontSize: 24),
-                              ),
-                              content: const Text(
-                                'Bu işlemi gerçekleştirmek istediğinizden emin misiniz?',
-                                style: TextStyle(fontSize: 18),
-                              ),
-                              actions: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text(
-                                    'Hayır',
+                if (totalTokensForSale != 0)
+                  Container(
+                    decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                        color: Colors.black),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            '${NumberFormat("#,###.##", "en_US").format(totalTokensForSale)} token satışta!',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 18),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text(
+                                    'Emin misiniz?',
                                     style: TextStyle(
-                                        color: Colors.red, fontSize: 20),
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .color,
+                                        fontSize: 24),
                                   ),
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    cancelAllTokenSales(
-                                      context: context,
-                                    );
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    'Evet',
-                                    style: TextStyle(
-                                        color: Colors.green, fontSize: 20),
+                                  content: const Text(
+                                    'Bu işlemi gerçekleştirmek istediğinizden emin misiniz?',
+                                    style: TextStyle(fontSize: 18),
                                   ),
-                                ),
-                              ],
+                                  actions: [
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(
+                                        'Hayır',
+                                        style: TextStyle(
+                                            color: Colors.red, fontSize: 20),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        cancelAllTokenSales(
+                                          context: context,
+                                        );
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text(
+                                        'Evet',
+                                        style: TextStyle(
+                                            color: Colors.green, fontSize: 20),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
-                        );
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                            color: Colors.red),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            'İptal Et',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Stack(
-                children: [
-                  TextField(
-                    autofocus: true,
-                    controller: _isTokenToTl ? _tlController : _tokenController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(15),
-                    ],
-                    style: const TextStyle(color: Colors.white),
-                    cursorColor: Colors.white,
-                    decoration: InputDecoration(
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(
-                              color: Color.fromRGBO(0, 86, 255, 1), width: 2.0),
-                        ),
-                        enabledBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18)),
-                          borderSide: BorderSide(
-                            color: Color.fromRGBO(245, 247, 249, 1),
-                            width: 2,
-                          ),
-                        ),
-                        suffixIcon: _isTokenToTl
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: SizedBox(
-                                        height: 30,
-                                        width: 30,
-                                        child:
-                                            Image.asset('assets/svg/tr.png')),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
-                              )
-                            : Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: SizedBox(
-                                        height: 30,
-                                        width: 30,
-                                        child: Image.asset(
-                                            'assets/images/eppser.png')),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
+                          child: Container(
+                            decoration: const BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12)),
+                                color: Colors.red),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'İptal Et',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
                               ),
-                        hintText: '0.00',
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        labelText: _isTokenToTl ? 'TRY' : 'eppser Token',
-                        labelStyle: const TextStyle(color: Colors.white)),
-                    onChanged: (value) {
-                      if (!_isTokenToTl) {
-                        _calculateTokenToTl();
-                      } else {
-                        _calculateTlToToken();
-                      }
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 70),
-                    child: TextField(
-                      controller:
-                          _isTokenToTl ? _tokenController : _tlController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(15),
-                      ],
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
-                      decoration: InputDecoration(
-                          focusedBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                            borderSide: BorderSide(
-                                color: Color.fromRGBO(0, 86, 255, 1),
-                                width: 2.0),
-                          ),
-                          enabledBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(18)),
-                            borderSide: BorderSide(
-                              color: Color.fromRGBO(245, 247, 249, 1),
-                              width: 2,
                             ),
                           ),
-                          suffixIcon: _isTokenToTl
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
+                        )
+                      ],
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Stack(
+                    children: [
+                      TextField(
+                        autofocus: true,
+                        controller:
+                            _isTokenToTl ? _tlController : _tokenController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(15),
+                        ],
+                        style: const TextStyle(color: Colors.white),
+                        cursorColor: Colors.white,
+                        decoration: InputDecoration(
+                            focusedBorder: const OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(12)),
+                              borderSide: BorderSide(
+                                  color: Color.fromRGBO(0, 86, 255, 1),
+                                  width: 2.0),
+                            ),
+                            enabledBorder: const OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(18)),
+                              borderSide: BorderSide(
+                                color: Color.fromRGBO(245, 247, 249, 1),
+                                width: 2,
+                              ),
+                            ),
+                            suffixIcon: _isTokenToTl
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: SizedBox(
+                                            height: 30,
+                                            width: 30,
+                                            child: Image.asset(
+                                                'assets/svg/tr.png')),
+                                      ),
+                                      const SizedBox(
+                                        width: 10,
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: SizedBox(
+                                            height: 30,
+                                            width: 30,
+                                            child: Image.asset(
+                                                'assets/images/eppser.png')),
+                                      ),
+                                      const SizedBox(
+                                        width: 10,
+                                      ),
+                                    ],
+                                  ),
+                            hintText: '0.00',
+                            hintStyle: const TextStyle(color: Colors.grey),
+                            labelText: _isTokenToTl ? 'TRY' : 'eppser Token',
+                            labelStyle: const TextStyle(color: Colors.white)),
+                        onChanged: (value) {
+                          if (!_isTokenToTl) {
+                            _calculateTokenToTl();
+                          } else {
+                            _calculateTlToToken();
+                          }
+                        },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 70),
+                        child: TextField(
+                          controller:
+                              _isTokenToTl ? _tokenController : _tlController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(15),
+                          ],
+                          style: const TextStyle(color: Colors.white),
+                          cursorColor: Colors.white,
+                          decoration: InputDecoration(
+                              focusedBorder: const OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12)),
+                                borderSide: BorderSide(
+                                    color: Color.fromRGBO(0, 86, 255, 1),
+                                    width: 2.0),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(18)),
+                                borderSide: BorderSide(
+                                  color: Color.fromRGBO(245, 247, 249, 1),
+                                  width: 2,
+                                ),
+                              ),
+                              suffixIcon: _isTokenToTl
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const SizedBox(
+                                          width: 5,
+                                        ),
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: SizedBox(
+                                              height: 30,
+                                              width: 30,
+                                              child: Image.asset(
+                                                  'assets/images/eppser.png')),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const SizedBox(
+                                          width: 5,
+                                        ),
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: SizedBox(
+                                              height: 30,
+                                              width: 30,
+                                              child: Image.asset(
+                                                  'assets/svg/tr.png')),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                      ],
+                                    ),
+                              hintText: '0.00',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              labelText: _isTokenToTl ? 'eppser Token' : 'TRY',
+                              labelStyle: const TextStyle(color: Colors.white),
+                              helper: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  const Text(
+                                    'Likitide : ',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  AnimatedFlipCounter(
+                                    decimalSeparator: '.',
+                                    thousandSeparator: ',',
+                                    fractionDigits: 2,
+                                    duration: const Duration(milliseconds: 500),
+                                    value: tokenLiquidity,
+                                    textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              )),
+                          onChanged: (value) {
+                            if (_isTokenToTl) {
+                              _calculateTokenToTl();
+                            } else {
+                              _calculateTlToToken();
+                            }
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 40),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(18)),
+                              color: _isTokenToTl ? Colors.red : Colors.black,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Iconsax.arrange_circle,
+                                size: 30,
+                                color: Colors.white,
+                              ),
+                              onPressed: _swapFields,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    if (tokenLiquidity <
+                        double.parse(
+                            _tokenController.text.trim().replaceAll(',', ''))) {
+                      showInsufficientLiquidityDialog(context);
+                    }
+                    if (_tlController.text.isNotEmpty &&
+                        _tokenController.text.isNotEmpty &&
+                        _isTokenToTl) {
+                      buyToken(
+                          context: context,
+                          userId: FirebaseAuth.instance.currentUser!.uid,
+                          amount: double.parse(_tokenController.text
+                              .trim()
+                              .replaceAll(',', '')));
+                    }
+
+                    if (_tlController.text.isNotEmpty &&
+                        _tokenController.text.isNotEmpty &&
+                        _isTokenToTl == false) {
+                      sellToken(
+                          context: context,
+                          userId: FirebaseAuth.instance.currentUser!.uid,
+                          amount: double.parse(_tokenController.text
+                              .trim()
+                              .replaceAll(',', '')));
+                    }
+                  },
+                  child: Container(
+                      alignment: Alignment.center,
+                      width: 150,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18.0),
+                        color: const Color.fromRGBO(0, 86, 255, 1),
+                      ),
+                      child: _isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              _isTokenToTl ? "Satın Al" : "Sat",
+                              style: TextStyle(
+                                  color:
+                                      _isLoading ? Colors.black : Colors.white,
+                                  fontSize: 18),
+                            )),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+              bottom: 10,
+              left: 10,
+              right: 10,
+              child: InkWell(
+                onTap: () async {
+                  final Uri url = Uri.parse(
+                      'https://medium.com/@ylcn1777/eppser-token-nedir-ea459de9d2fb');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } else {
+                    throw 'Link açılamıyor: $url';
+                  }
+                },
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image:
+                              AssetImage('assets/images/tokenbackground.jpg'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: GestureDetector(
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const SizedBox(
-                                      width: 5,
+                                    Text(
+                                      'eppser Token Nedir?',
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: SizedBox(
-                                          height: 30,
-                                          width: 30,
-                                          child: Image.asset(
-                                              'assets/images/eppser.png')),
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                  ],
-                                )
-                              : Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const SizedBox(
-                                      width: 5,
-                                    ),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: SizedBox(
-                                          height: 30,
-                                          width: 30,
-                                          child:
-                                              Image.asset('assets/svg/tr.png')),
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
+                                    Text(
+                                      ' Muşareke ortaklığı Nedir?',
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 22,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
-                          hintText: '0.00',
-                          hintStyle: const TextStyle(color: Colors.grey),
-                          labelText: _isTokenToTl ? 'eppser Token' : 'TRY',
-                          labelStyle: const TextStyle(color: Colors.white),
-                          helper: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              const Text(
-                                'Likitide : ',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              AnimatedFlipCounter(
-                                decimalSeparator: '.',
-                                thousandSeparator: ',',
-                                fractionDigits: 2,
-                                duration: const Duration(milliseconds: 500),
-                                value: tokenLiquidity,
-                                textStyle: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
                               ),
                             ],
-                          )),
-                      onChanged: (value) {
-                        if (_isTokenToTl) {
-                          _calculateTokenToTl();
-                        } else {
-                          _calculateTlToToken();
-                        }
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(18)),
-                          color: _isTokenToTl ? Colors.red : Colors.black,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Iconsax.arrange_circle,
-                            size: 30,
-                            color: Colors.white,
                           ),
-                          onPressed: _swapFields,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                if (tokenLiquidity <
-                    double.parse(
-                        _tokenController.text.trim().replaceAll(',', ''))) {
-                  showInsufficientLiquidityDialog(context);
-                }
-                if (_tlController.text.isNotEmpty &&
-                    _tokenController.text.isNotEmpty &&
-                    _isTokenToTl) {
-                  buyToken(
-                      context: context,
-                      userId: FirebaseAuth.instance.currentUser!.uid,
-                      amount: double.parse(
-                          _tokenController.text.trim().replaceAll(',', '')));
-                }
-
-                if (_tlController.text.isNotEmpty &&
-                    _tokenController.text.isNotEmpty &&
-                    _isTokenToTl == false) {
-                  sellToken(
-                      context: context,
-                      userId: FirebaseAuth.instance.currentUser!.uid,
-                      amount: double.parse(
-                          _tokenController.text.trim().replaceAll(',', '')));
-                }
-              },
-              child: Container(
-                  alignment: Alignment.center,
-                  width: 150,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18.0),
-                    color: const Color.fromRGBO(0, 86, 255, 1),
-                  ),
-                  child: _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          _isTokenToTl ? "Satın Al" : "Sat",
-                          style: TextStyle(
-                              color: _isLoading ? Colors.black : Colors.white,
-                              fontSize: 18),
-                        )),
-            ),
-          ],
-        ),
+                ),
+              ))
+        ],
       ),
     );
   }

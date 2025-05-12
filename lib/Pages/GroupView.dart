@@ -406,64 +406,70 @@ class _GroupViewState extends State<GroupView> {
                     size: 30,
                   ),
                 ),
-              IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          backgroundColor: Colors.white,
-                          surfaceTintColor: Colors.white,
-                          title: const Text('Gruptan Çık'),
-                          content: const Text(
-                              'Gruptan çıkmak istediğinize emin misiniz?',
-                              style: TextStyle(color: Colors.black)),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text(
-                                'İptal',
-                                style: TextStyle(color: Colors.black),
+              if (groupData['admins']
+                      .contains(FirebaseAuth.instance.currentUser!.uid) ||
+                  groupData['members']
+                      .contains(FirebaseAuth.instance.currentUser!.uid))
+                IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: Colors.white,
+                            surfaceTintColor: Colors.white,
+                            title: const Text('Gruptan Çık'),
+                            content: const Text(
+                                'Gruptan çıkmak istediğinize emin misiniz?',
+                                style: TextStyle(color: Colors.black)),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'İptal',
+                                  style: TextStyle(color: Colors.black),
+                                ),
                               ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                FirebaseFirestore.instance
-                                    .collection('Community')
-                                    .doc(groupData['communityId'])
-                                    .collection('Groups')
-                                    .doc(groupData['groupId'])
-                                    .update({
-                                  'members': FieldValue.arrayRemove(
-                                      [FirebaseAuth.instance.currentUser!.uid]),
-                                  'admins': FieldValue.arrayRemove(
-                                      [FirebaseAuth.instance.currentUser!.uid])
-                                });
+                              TextButton(
+                                onPressed: () {
+                                  FirebaseFirestore.instance
+                                      .collection('Community')
+                                      .doc(groupData['communityId'])
+                                      .collection('Groups')
+                                      .doc(groupData['groupId'])
+                                      .update({
+                                    'members': FieldValue.arrayRemove([
+                                      FirebaseAuth.instance.currentUser!.uid
+                                    ]),
+                                    'admins': FieldValue.arrayRemove([
+                                      FirebaseAuth.instance.currentUser!.uid
+                                    ])
+                                  });
 
-                                Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => bottomBar(),
-                                    ),
-                                    (route) => false);
-                              },
-                              child: const Text(
-                                'Evet',
-                                style: TextStyle(color: Colors.black),
+                                  Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => bottomBar(),
+                                      ),
+                                      (route) => false);
+                                },
+                                child: const Text(
+                                  'Evet',
+                                  style: TextStyle(color: Colors.black),
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  icon: Icon(
-                    Iconsax.login_1,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                    size: 32,
-                  ))
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    icon: Icon(
+                      Iconsax.login_1,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      size: 32,
+                    ))
             ],
           ),
           body: RefreshIndicator(
@@ -726,6 +732,60 @@ class _GroupViewState extends State<GroupView> {
                               ],
                             ),
                           ),
+                          if (groupData['admins']
+                              .contains(FirebaseAuth.instance.currentUser!.uid))
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Hızlı Ayarlar',
+                                style:
+                                    TextStyle(fontSize: 20, color: Colors.blue),
+                              ),
+                            ),
+                          if (groupData['admins']
+                              .contains(FirebaseAuth.instance.currentUser!.uid))
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Icon(
+                                  Iconsax.user,
+                                ),
+                                Text(
+                                  "Sadece Yöneticiler",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                StatefulBuilder(
+                                    builder: (context, localsetState) {
+                                  return Switch(
+                                    activeColor: Colors.white,
+                                    inactiveThumbColor: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium!
+                                        .color,
+                                    activeTrackColor: Colors.amber,
+                                    inactiveTrackColor: Colors.amber,
+                                    value: groupData['onlyAdmins'],
+                                    onChanged: (value) {
+                                      if (mounted) {
+                                        localsetState(() {
+                                          FirebaseFirestore.instance
+                                              .collection('Community')
+                                              .doc(groupData['communityId'])
+                                              .collection('Groups')
+                                              .doc(groupData['groupId'])
+                                              .update({'onlyAdmins': value});
+                                        });
+                                      }
+                                    },
+                                  );
+                                }),
+                              ],
+                            ),
                         ],
                       );
                     }),

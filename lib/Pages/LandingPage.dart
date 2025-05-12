@@ -19,7 +19,6 @@ class LandingScreen extends StatefulWidget {
 }
 
 class _LandingScreenState extends State<LandingScreen> {
-  // Eklendi: Ülke kodu düzenlenebilir TextField kontrolü
   TextEditingController countryCodeController =
       TextEditingController(text: "+90");
   TextEditingController phoneController = TextEditingController();
@@ -42,8 +41,12 @@ class _LandingScreenState extends State<LandingScreen> {
           phoneNumber: '${countryCodeController.text + phoneController.text}',
           verificationCompleted: (PhoneAuthCredential credential) {},
           verificationFailed: (FirebaseAuthException e) {
+            print('Verification failed: ${e.code} - ${e.message}');
             if (e.code == 'invalid-phone-number') {
               showSnackBar(context, 'Sağlanan telefon numarası geçerli değil!');
+            } else {
+              showSnackBar(
+                  context, 'Doğrulama sırasında hata oluştu: ${e.message}');
             }
           },
           codeSent: (String verificationId, int? resendToken) {

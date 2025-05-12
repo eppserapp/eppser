@@ -1,3 +1,4 @@
+import 'package:eppser/Pages/EventsView.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:eppser/Resources/firestoreMethods.dart';
@@ -268,150 +269,162 @@ class _CreateEventState extends State<CreateEvent> {
                           itemBuilder: (context, index) {
                             var doc = snapshot.data!.docs[index];
                             var eventData = doc.data() as Map<String, dynamic>;
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              height: 150,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                image: DecorationImage(
-                                  colorFilter: ColorFilter.mode(
-                                      Colors.black.withOpacity(0.3),
-                                      BlendMode.darken),
-                                  image: eventData['imageUrl'] == null
-                                      ? const AssetImage(
-                                          'assets/images/moneybackground.jpg')
-                                      : NetworkImage(eventData['imageUrl']),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        SizedBox(
-                                          width: 300,
-                                          child: Text(
-                                              eventData['title'] ??
-                                                  "Başlık yok",
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 18,
-                                              )),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        SizedBox(
-                                          width: 300,
-                                          child: Text(
-                                              eventData['description'] ??
-                                                  "Açıklama yok",
-                                              maxLines: 3,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w300)),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          DateFormat.yMMMMEEEEd("tr_TR").format(
-                                            (eventData['dateCreated']
-                                                    as Timestamp)
-                                                .toDate(),
-                                          ),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      ],
-                                    ),
+                            return InkWell(
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        EventsView(data: eventData),
+                                  )),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  image: DecorationImage(
+                                    colorFilter: ColorFilter.mode(
+                                        Colors.black.withOpacity(0.3),
+                                        BlendMode.darken),
+                                    image: eventData['imageUrl'] == null
+                                        ? const AssetImage(
+                                            'assets/images/moneybackground.jpg')
+                                        : NetworkImage(eventData['imageUrl']),
+                                    fit: BoxFit.cover,
                                   ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Iconsax.trash,
-                                            size: 24, color: Colors.red),
-                                        onPressed: () async {
-                                          bool confirmDelete = await showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                backgroundColor: Colors.black,
-                                                title: const Text(
-                                                    "Silmek istediğinize emin misiniz?",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 18)),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    child: const Text("İptal",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white)),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(false);
-                                                    },
-                                                  ),
-                                                  TextButton(
-                                                    child: const Text("Sil",
-                                                        style: TextStyle(
-                                                            color: Colors.red)),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(true);
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                          if (confirmDelete) {
-                                            try {
-                                              if (eventData['imageUrl'] !=
-                                                  null) {
-                                                await FirebaseStorage.instance
-                                                    .refFromURL(
-                                                        eventData['imageUrl'])
-                                                    .delete();
-                                              }
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            width: 300,
+                                            child: Text(
+                                                eventData['title'] ??
+                                                    "Başlık yok",
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 18,
+                                                )),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          SizedBox(
+                                            width: 300,
+                                            child: Text(
+                                                eventData['description'] ??
+                                                    "Açıklama yok",
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.w300)),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            DateFormat.yMMMMEEEEd("tr_TR")
+                                                .format(
+                                              (eventData['dateCreated']
+                                                      as Timestamp)
+                                                  .toDate(),
+                                            ),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Iconsax.trash,
+                                              size: 24, color: Colors.red),
+                                          onPressed: () async {
+                                            bool confirmDelete =
+                                                await showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  backgroundColor: Colors.black,
+                                                  title: const Text(
+                                                      "Silmek istediğinize emin misiniz?",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 18)),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: const Text("İptal",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white)),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop(false);
+                                                      },
+                                                    ),
+                                                    TextButton(
+                                                      child: const Text("Sil",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.red)),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop(true);
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                            if (confirmDelete) {
+                                              try {
+                                                if (eventData['imageUrl'] !=
+                                                    null) {
+                                                  await FirebaseStorage.instance
+                                                      .refFromURL(
+                                                          eventData['imageUrl'])
+                                                      .delete();
+                                                }
 
-                                              await FirebaseFirestore.instance
-                                                  .collection('Events')
-                                                  .doc(doc.id)
-                                                  .delete();
-                                              if (mounted) {
-                                                // widget hala aktif mi?
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(const SnackBar(
-                                                        content: Text(
-                                                            "Etkinlik silindi")));
-                                              }
-                                            } catch (e) {
-                                              if (mounted) {
-                                                // widget hala aktif mi?
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(SnackBar(
-                                                        content: Text(
-                                                            "Silme işlemi başarısız: $e")));
+                                                await FirebaseFirestore.instance
+                                                    .collection('Events')
+                                                    .doc(doc.id)
+                                                    .delete();
+                                                if (mounted) {
+                                                  // widget hala aktif mi?
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(const SnackBar(
+                                                          content: Text(
+                                                              "Etkinlik silindi")));
+                                                }
+                                              } catch (e) {
+                                                if (mounted) {
+                                                  // widget hala aktif mi?
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(SnackBar(
+                                                          content: Text(
+                                                              "Silme işlemi başarısız: $e")));
+                                                }
                                               }
                                             }
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },

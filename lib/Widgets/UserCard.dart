@@ -138,7 +138,6 @@ class _userCardState extends State<userCard> {
                             name,
                             style: const TextStyle(
                               fontSize: 22,
-                              color: Colors.black,
                             ),
                           ),
                           Row(
@@ -147,7 +146,6 @@ class _userCardState extends State<userCard> {
                                 surname,
                                 style: const TextStyle(
                                   fontSize: 22,
-                                  color: Colors.black,
                                 ),
                               ),
                               tick
@@ -155,7 +153,6 @@ class _userCardState extends State<userCard> {
                                       padding: EdgeInsets.only(top: 5, left: 2),
                                       child: Icon(
                                         Iconsax.verify5,
-                                        color: Colors.black,
                                         size: 18,
                                       ),
                                     )

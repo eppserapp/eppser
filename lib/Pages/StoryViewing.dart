@@ -54,7 +54,6 @@ class _StoryViewingState extends State<StoryViewing> {
             ),
           )
         : Scaffold(
-            backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: Colors.black,
               centerTitle: true,

@@ -437,7 +437,7 @@ class _ChatCardState extends State<ChatCard> {
                           if (message.values
                                   .where((message) =>
                                       message['isSeen'] == false &&
-                                      message['recieverId'] ==
+                                      message['receiverId'] ==
                                           FirebaseAuth
                                               .instance.currentUser?.uid)
                                   .length >
@@ -453,7 +453,7 @@ class _ChatCardState extends State<ChatCard> {
                                     message.values
                                         .where((message) =>
                                             message['isSeen'] == false &&
-                                            message['recieverId'] ==
+                                            message['receiverId'] ==
                                                 FirebaseAuth
                                                     .instance.currentUser?.uid)
                                         .length

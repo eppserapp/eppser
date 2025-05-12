@@ -20,6 +20,66 @@ class CommunityPage extends StatefulWidget {
 }
 
 class _CommunityPageState extends State<CommunityPage> {
+  bool isBlocked = false;
+  var blockList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    checkIfBlocked();
+  }
+
+  Future<void> checkIfBlocked() async {
+    final communityDoc = await FirebaseFirestore.instance
+        .collection('Community')
+        .doc(widget.communityId)
+        .get();
+
+    blockList = communityDoc.data()?['block'] as List<dynamic>? ?? [];
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    if (blockList.isNotEmpty) {
+      setState(() {
+        isBlocked = blockList.contains(uid);
+      });
+    }
+
+    if (isBlocked) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => WillPopScope(
+          onWillPop: () async {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            return false;
+          },
+          child: AlertDialog(
+            title: const Text(
+              'Erişim Engellendi',
+              style: TextStyle(color: Colors.red),
+            ),
+            content:
+                const Text('Bu topluluk yöneticisi tarafından engellendiniz.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // dialog'u kapat
+                  Navigator.of(context).pop(); // sayfayı kapat
+                },
+                child: Text(
+                  'Tamam',
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,64 +91,49 @@ class _CommunityPageState extends State<CommunityPage> {
               communityId: widget.communityId,
             ),
           ),
-          SliverToBoxAdapter(
-            child: StreamBuilder(
-              stream: FirebaseFirestore.instance
-                  .collection('Community')
-                  .doc(widget.communityId)
-                  .collection('Groups')
-                  .orderBy('date', descending: false)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                // Eğer bağlantı bekleme durumundaysa (ilk yükleme vs.)
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(30),
-                                  child: Container(
-                                    color: Colors.black.withOpacity(0.04),
-                                    width: 70,
-                                    height: 70,
+          if (!isBlocked)
+            SliverToBoxAdapter(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('Community')
+                    .doc(widget.communityId)
+                    .collection('Groups')
+                    .orderBy('date', descending: false)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  // Eğer bağlantı bekleme durumundaysa (ilk yükleme vs.)
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) => Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: Container(
+                                      color: Colors.black.withOpacity(0.04),
+                                      width: 70,
+                                      height: 70,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth:
-                                          MediaQuery.of(context).size.width *
-                                              0.70,
-                                    ),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.04),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      height: 20,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ConstrainedBox(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ConstrainedBox(
                                       constraints: BoxConstraints(
                                         maxWidth:
                                             MediaQuery.of(context).size.width *
-                                                0.40,
+                                                0.70,
                                       ),
                                       child: Container(
                                         decoration: BoxDecoration(
@@ -99,53 +144,72 @@ class _CommunityPageState extends State<CommunityPage> {
                                         height: 20,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    separatorBuilder: (context, index) => const SizedBox(
-                      height: 15,
-                    ),
-                    itemCount: 7,
-                  );
-                }
-                return Column(
-                  children: [
-                    const SizedBox(
-                      height: 120,
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        final groupData = snapshot.data!.docs[index].data();
-                        return GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GroupChat(
-                                groupId: groupData['groupId'],
-                                communityId: widget.communityId,
-                              ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.40,
+                                        ),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.black.withOpacity(0.04),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          height: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          child: GroupCard(
-                            groupId: groupData['groupId'],
-                            communityId: widget.communityId,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
+                        ],
+                      ),
+                      separatorBuilder: (context, index) => const SizedBox(
+                        height: 15,
+                      ),
+                      itemCount: 7,
+                    );
+                  }
+                  return Column(
+                    children: [
+                      const SizedBox(
+                        height: 120,
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          final groupData = snapshot.data!.docs[index].data();
+                          return GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => GroupChat(
+                                  groupId: groupData['groupId'],
+                                  communityId: widget.communityId,
+                                ),
+                              ),
+                            ),
+                            child: GroupCard(
+                              groupId: groupData['groupId'],
+                              communityId: widget.communityId,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -158,7 +222,13 @@ class _CommunityPageState extends State<CommunityPage> {
           if (snapshot.hasData) {
             final communityData = snapshot.data!.data() as Map<String, dynamic>;
             final members = communityData['members'] ?? [];
-            if (members.contains(FirebaseAuth.instance.currentUser!.uid)) {
+            var block = false;
+            if (communityData['block'] != null) {
+              block = communityData['block']
+                  .contains(FirebaseAuth.instance.currentUser!.uid);
+            }
+            if (members.contains(FirebaseAuth.instance.currentUser!.uid) ||
+                block) {
               return const SizedBox.shrink();
             }
             return InkWell(

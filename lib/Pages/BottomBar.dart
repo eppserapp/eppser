@@ -19,15 +19,13 @@ class bottomBar extends StatefulWidget {
 
 class _bottomBarState extends State<bottomBar> {
   int _selectedIndex = 0;
-  final PageController _pageController = PageController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        controller: _pageController,
+      body: IndexedStack(
+        index: _selectedIndex,
         children: <Widget>[
           const Home(),
           Timeline(),
@@ -37,11 +35,6 @@ class _bottomBarState extends State<bottomBar> {
             uid: FirebaseAuth.instance.currentUser!.uid,
           )
         ],
-        onPageChanged: (page) {
-          setState(() {
-            _selectedIndex = page;
-          });
-        },
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -93,7 +86,6 @@ class _bottomBarState extends State<bottomBar> {
               onTabChange: (index) {
                 setState(() {
                   _selectedIndex = index;
-                  _pageController.jumpToPage(index);
                 });
               },
             ),

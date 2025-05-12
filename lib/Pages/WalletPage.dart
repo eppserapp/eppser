@@ -25,6 +25,7 @@ import 'package:intl/intl.dart';
 import 'package:marqueer/marqueer.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
@@ -545,10 +546,53 @@ class _WalletPageState extends State<WalletPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             InkWell(
-                              onTap: () => showDialog(
-                                context: context,
-                                builder: (context) => BankDetailsDialog(),
-                              ),
+                              // onTap: () => showDialog(
+                              //   context: context,
+                              //   builder: (context) => BankDetailsDialog(),
+                              // ),
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        'Bilgilendirme',
+                                        style: TextStyle(
+                                            fontSize: 22,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color),
+                                      ),
+                                      content: Text(
+                                        'Uygulama şu anlık test aşamasında olduğundan bu özellik kullanılamıyor.',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(
+                                            'Tamam',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .color),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                               child: Center(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -574,9 +618,52 @@ class _WalletPageState extends State<WalletPage> {
                                   duration: 600.ms),
                             ),
                             InkWell(
-                              onTap: () => showDialog(
+                              // onTap: () => showDialog(
+                              //     context: context,
+                              //     builder: (context) => WithdrawIbanDialog()),
+                              onTap: () {
+                                showDialog(
                                   context: context,
-                                  builder: (context) => WithdrawIbanDialog()),
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        'Bilgilendirme',
+                                        style: TextStyle(
+                                            fontSize: 22,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color),
+                                      ),
+                                      content: Text(
+                                        'Uygulama şu anlık test aşamasında olduğundan bu özellik kullanılamıyor.',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(
+                                            'Tamam',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .color),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                               child: Center(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1110,98 +1197,88 @@ class _WalletPageState extends State<WalletPage> {
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              height: 200,
-                              width: double.infinity,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/goldbackground.jpg'),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: GestureDetector(
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        overflow: TextOverflow.fade,
-                                        "Toplam Varlıklarım",
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        child: Column(
-                                          children: [
-                                            RichText(
-                                              text: TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: goldTl
-                                                        .toStringAsFixed(4),
-                                                    style: const TextStyle(
-                                                      color: Colors.amber,
-                                                      fontSize: 70,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                  const TextSpan(
-                                                    text: ' gr.',
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 34,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      ApiData == null
-                                          ? const SizedBox()
-                                          : AnimatedFlipCounter(
-                                              decimalSeparator: '.',
-                                              thousandSeparator: ',',
-                                              prefix: '₺',
-                                              fractionDigits: 2,
-                                              duration: const Duration(
-                                                  milliseconds: 500),
-                                              value: double.parse(
-                                                      ApiData["gram-altin"]
-                                                              ["Alış"]
-                                                          .replaceAll('.', '')
-                                                          .replaceAll(
-                                                              ',', '.')) *
-                                                  accountData['gold'],
-                                              textStyle: const TextStyle(
-                                                  fontSize: 24,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                    ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                  'assets/images/goldbackground.jpg'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: GestureDetector(
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    overflow: TextOverflow.fade,
+                                    "Toplam Varlıklarım",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                ),
+                                  SizedBox(
+                                    child: Column(
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: goldTl.toStringAsFixed(4),
+                                                style: const TextStyle(
+                                                  color: Colors.amber,
+                                                  fontSize: 70,
+                                                  fontWeight: FontWeight.bold,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const TextSpan(
+                                                text: ' gr.',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 34,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  ApiData == null
+                                      ? const SizedBox()
+                                      : AnimatedFlipCounter(
+                                          decimalSeparator: '.',
+                                          thousandSeparator: ',',
+                                          prefix: '₺',
+                                          fractionDigits: 2,
+                                          duration:
+                                              const Duration(milliseconds: 500),
+                                          value: double.parse(
+                                                  ApiData["gram-altin"]["Alış"]
+                                                      .replaceAll('.', '')
+                                                      .replaceAll(',', '.')) *
+                                              accountData['gold'],
+                                          textStyle: const TextStyle(
+                                              fontSize: 24,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                ],
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ).animate().fadeIn().move(delay: 500.ms, duration: 600.ms),
                   ),
@@ -1212,58 +1289,53 @@ class _WalletPageState extends State<WalletPage> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Column(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
-                              child: Container(
-                                height: 200,
-                                width: double.infinity,
-                                decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                        'assets/images/cardbackground.jpg'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: GestureDetector(
-                                    child: const Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        SizedBox(
-                                          child: Text(
-                                            'eppser Card',
-                                            maxLines: 3,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 40,
-                                              fontWeight: FontWeight.bold,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Container(
+                            height: 200,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage(
+                                    'assets/images/cardbackground.jpg'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: GestureDetector(
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      child: Text(
+                                        'eppser Card',
+                                        maxLines: 3,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.bold,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          overflow: TextOverflow.fade,
-                                          "eppser kart ile ödemelerini altın olarak yap",
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
+                                    SizedBox(
+                                      height: 15,
+                                    ),
+                                    Text(
+                                      overflow: TextOverflow.fade,
+                                      "eppser kart ile ödemelerini altın olarak yap",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       )
                           .animate()
@@ -1303,55 +1375,51 @@ class _WalletPageState extends State<WalletPage> {
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              height: 200,
-                              width: double.infinity,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/tokenbackground.jpg'),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      child: Text(
-                                        'eppser Token',
-                                        maxLines: 3,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 15,
-                                    ),
-                                    Text(
-                                      overflow: TextOverflow.fade,
-                                      "eppser'a Ortak Ol",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                  'assets/images/tokenbackground.jpg'),
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        ],
+                          child: const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  child: Text(
+                                    'eppser Token',
+                                    maxLines: 3,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                Text(
+                                  overflow: TextOverflow.fade,
+                                  "eppser'a Ortak Ol",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ).animate().fadeIn().move(delay: 500.ms, duration: 600.ms),
                   ),
@@ -1360,46 +1428,54 @@ class _WalletPageState extends State<WalletPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: Container(
-                            height: 200,
-                            width: double.infinity,
-                            decoration: const BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(
-                                    'assets/images/dollarbackground.jpg'),
-                                fit: BoxFit.cover,
-                              ),
+                    child: InkWell(
+                      onTap: () async {
+                        final Uri url = Uri.parse(
+                            'https://medium.com/@ylcn1777/goldisrealmoney-hareketi-nedir-77c0807f2c65');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url,
+                              mode: LaunchMode.externalApplication);
+                        } else {
+                          throw 'Link açılamıyor: $url';
+                        }
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                  'assets/images/dollarbackground.jpg'),
+                              fit: BoxFit.cover,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(5),
-                              child: GestureDetector(
-                                child: const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      child: Text(
-                                        '#goldisrealmoney',
-                                        maxLines: 3,
-                                        style: TextStyle(
-                                          color: Colors.amber,
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: GestureDetector(
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    child: Text(
+                                      '#goldisrealmoney',
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.bold,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ).animate().fadeIn().move(delay: 500.ms, duration: 600.ms),
                   const SizedBox(

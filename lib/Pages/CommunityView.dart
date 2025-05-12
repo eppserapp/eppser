@@ -22,6 +22,7 @@ class _CommunityViewState extends State<CommunityView> {
   bool isLoading = false;
   var communityData;
   var userData;
+  var blockList;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _aboutController = TextEditingController();
   Uint8List? _file;
@@ -45,7 +46,6 @@ class _CommunityViewState extends State<CommunityView> {
         .get();
     communityData = communityDoc.data();
     if (communityData != null) {
-      // Retrieve the members list from the community data
       var members = communityData['members'];
       // Fetch the user details of each member
       var data = await FirebaseFirestore.instance
@@ -54,6 +54,14 @@ class _CommunityViewState extends State<CommunityView> {
           .get();
       userData = data.docs.map((e) => e.data()).toList();
       userData = userData.toList().reversed.toList();
+      if (communityData['block'].isNotEmpty) {
+        var data2 = await FirebaseFirestore.instance
+            .collection('Users')
+            .where('uid', whereIn: communityData['block'])
+            .get();
+        blockList = data2.docs.map((e) => e.data()).toList();
+        blockList = blockList.toList().reversed.toList();
+      }
     }
     setState(() {
       isLoading = false;
@@ -550,64 +558,69 @@ class _CommunityViewState extends State<CommunityView> {
                       color: Colors.white,
                     ),
                   ),
-                IconButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            backgroundColor: Colors.white,
-                            surfaceTintColor: Colors.white,
-                            title: const Text('Topluluktan Çık'),
-                            content: const Text(
-                                'Topluluk çıkmak istediğinize emin misiniz?',
-                                style: TextStyle(color: Colors.black)),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  'İptal',
-                                  style: TextStyle(color: Colors.black),
+                if (communityData['admins']
+                        .contains(FirebaseAuth.instance.currentUser!.uid) ||
+                    communityData['members']
+                        .contains(FirebaseAuth.instance.currentUser!.uid))
+                  IconButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              backgroundColor: Colors.white,
+                              surfaceTintColor: Colors.white,
+                              title: const Text('Topluluktan Çık'),
+                              content: const Text(
+                                  'Topluluk çıkmak istediğinize emin misiniz?',
+                                  style: TextStyle(color: Colors.black)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text(
+                                    'İptal',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  FirebaseFirestore.instance
-                                      .collection('Community')
-                                      .doc(communityData['communityId'])
-                                      .update({
-                                    'members': FieldValue.arrayRemove([
-                                      FirebaseAuth.instance.currentUser!.uid
-                                    ]),
-                                    'admins': FieldValue.arrayRemove([
-                                      FirebaseAuth.instance.currentUser!.uid
-                                    ])
-                                  });
-                                  Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => bottomBar(),
-                                      ),
-                                      (route) => false);
-                                  showSnackBar(context, "Topluluktan Çıkıldı!");
-                                },
-                                child: const Text(
-                                  'Evet',
-                                  style: TextStyle(color: Colors.black),
+                                TextButton(
+                                  onPressed: () {
+                                    FirebaseFirestore.instance
+                                        .collection('Community')
+                                        .doc(communityData['communityId'])
+                                        .update({
+                                      'members': FieldValue.arrayRemove([
+                                        FirebaseAuth.instance.currentUser!.uid
+                                      ]),
+                                      'admins': FieldValue.arrayRemove([
+                                        FirebaseAuth.instance.currentUser!.uid
+                                      ])
+                                    });
+                                    Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => bottomBar(),
+                                        ),
+                                        (route) => false);
+                                    showSnackBar(
+                                        context, "Topluluktan Çıkıldı!");
+                                  },
+                                  child: const Text(
+                                    'Evet',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    icon: const Icon(
-                      Iconsax.login_1,
-                      size: 32,
-                      color: Colors.white,
-                    ))
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      icon: const Icon(
+                        Iconsax.login_1,
+                        size: 32,
+                        color: Colors.white,
+                      ))
               ],
             ),
       body: isLoading
@@ -628,230 +641,493 @@ class _CommunityViewState extends State<CommunityView> {
                         color: Colors.black,
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: userData.length,
-                      itemBuilder: (context, index) {
-                        return Column(
-                          children: [
-                            InkWell(
-                              onTap: () => userData[index]['uid'] !=
-                                      FirebaseAuth.instance.currentUser!.uid
-                                  ? Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            Chat(snap: userData[index]['uid']),
-                                      ),
-                                    )
-                                  : null,
-                              onLongPress: () {
-                                if (communityData['admins'].contains(
-                                    FirebaseAuth.instance.currentUser!.uid)) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => SimpleDialog(
-                                      backgroundColor: Colors.white,
-                                      surfaceTintColor: Colors.white,
-                                      children: [
-                                        if (communityData['admins'].contains(
-                                                userData[index]['uid']) &&
-                                            communityData['uid'] !=
-                                                userData[index]['uid'])
-                                          SimpleDialogOption(
-                                            padding: const EdgeInsets.all(10),
-                                            child: const Text(
-                                                'Yöneticilikten Çıkar',
-                                                style: TextStyle(
-                                                    color: Colors.red)),
-                                            onPressed: () {
-                                              FirebaseFirestore.instance
-                                                  .collection('Community')
-                                                  .doc(communityData[
-                                                      'communityId'])
-                                                  .update({
-                                                'admins':
-                                                    FieldValue.arrayRemove([
-                                                  userData[index]['uid']
-                                                ])
-                                              });
-                                              getData();
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                        if (!communityData['admins']
-                                            .contains(userData[index]['uid']))
-                                          SimpleDialogOption(
-                                            padding: const EdgeInsets.all(10),
-                                            child: const Text('Yönetici Yap',
-                                                style: TextStyle(
-                                                    color: Colors.green)),
-                                            onPressed: () {
-                                              FirebaseFirestore.instance
-                                                  .collection('Community')
-                                                  .doc(communityData[
-                                                      'communityId'])
-                                                  .update({
-                                                'admins': FieldValue.arrayUnion(
-                                                    [userData[index]['uid']])
-                                              });
-                                              getData();
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                        if (communityData['admins'].contains(
-                                                FirebaseAuth.instance
-                                                    .currentUser!.uid) &&
-                                            !communityData['admins'].contains(
-                                                userData[index]['uid']) &&
-                                            communityData['uid'] !=
-                                                userData[index]['uid'])
-                                          SimpleDialogOption(
-                                            padding: const EdgeInsets.all(10),
-                                            child: const Text('Kanaldan Çıkar',
-                                                style: TextStyle(
-                                                    color: Colors.red)),
-                                            onPressed: () {
-                                              FirebaseFirestore.instance
-                                                  .collection('Community')
-                                                  .doc(communityData[
-                                                      'communityId'])
-                                                  .update({
-                                                'members':
-                                                    FieldValue.arrayRemove([
-                                                  userData[index]['uid'],
-                                                ]),
-                                                'admins':
-                                                    FieldValue.arrayRemove([
-                                                  userData[index]['uid'],
-                                                ])
-                                              });
-                                              getData();
-                                              Navigator.pop(context);
-                                            },
-                                          )
-                                      ],
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Row(
+                  : Column(
+                      children: [
+                        ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: userData.length,
+                            itemBuilder: (context, index) {
+                              return Column(
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 10, top: 5, right: 10),
-                                    child: userData[index]['profImage'] != null
-                                        ? ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(50 * 0.4)),
-                                            child: Image.network(
-                                              userData[index]['profImage'],
-                                              height: 50,
-                                              width: 50,
-                                              fit: BoxFit.cover,
+                                  InkWell(
+                                    onTap: () => userData[index]['uid'] !=
+                                            FirebaseAuth
+                                                .instance.currentUser!.uid
+                                        ? Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => Chat(
+                                                  snap: userData[index]['uid']),
                                             ),
                                           )
-                                        : Container(
-                                            height: 50,
-                                            width: 50,
-                                            decoration: BoxDecoration(
-                                                color: const Color.fromRGBO(
-                                                    0, 86, 255, 1),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        50 * 0.4)),
-                                            child: const Icon(
-                                              Iconsax.people,
-                                              color: Colors.white,
-                                              size: 34,
-                                            ),
+                                        : null,
+                                    onLongPress: () {
+                                      if (communityData['admins'].contains(
+                                          FirebaseAuth
+                                              .instance.currentUser!.uid)) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => SimpleDialog(
+                                            backgroundColor: Colors.white,
+                                            surfaceTintColor: Colors.white,
+                                            children: [
+                                              if (communityData['admins']
+                                                      .contains(userData[index]
+                                                          ['uid']) &&
+                                                  communityData['uid'] !=
+                                                      userData[index]['uid'])
+                                                SimpleDialogOption(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  child: const Text(
+                                                      'Yöneticilikten Çıkar',
+                                                      style: TextStyle(
+                                                          color: Colors.red)),
+                                                  onPressed: () {
+                                                    FirebaseFirestore.instance
+                                                        .collection('Community')
+                                                        .doc(communityData[
+                                                            'communityId'])
+                                                        .update({
+                                                      'admins': FieldValue
+                                                          .arrayRemove([
+                                                        userData[index]['uid']
+                                                      ])
+                                                    });
+                                                    getData();
+                                                    Navigator.pop(context);
+                                                  },
+                                                ),
+                                              if (!communityData['admins']
+                                                  .contains(
+                                                      userData[index]['uid']))
+                                                SimpleDialogOption(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  child: const Text(
+                                                      'Yönetici Yap',
+                                                      style: TextStyle(
+                                                          color: Colors.green)),
+                                                  onPressed: () {
+                                                    FirebaseFirestore.instance
+                                                        .collection('Community')
+                                                        .doc(communityData[
+                                                            'communityId'])
+                                                        .update({
+                                                      'admins': FieldValue
+                                                          .arrayUnion([
+                                                        userData[index]['uid']
+                                                      ])
+                                                    });
+                                                    getData();
+                                                    Navigator.pop(context);
+                                                  },
+                                                ),
+                                              if (communityData['admins']
+                                                      .contains(FirebaseAuth
+                                                          .instance
+                                                          .currentUser!
+                                                          .uid) &&
+                                                  !communityData['admins']
+                                                      .contains(userData[index]
+                                                          ['uid']) &&
+                                                  communityData['uid'] !=
+                                                      userData[index]['uid'])
+                                                SimpleDialogOption(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  child: const Text(
+                                                      'Kanaldan Çıkar',
+                                                      style: TextStyle(
+                                                          color: Colors.red)),
+                                                  onPressed: () {
+                                                    FirebaseFirestore.instance
+                                                        .collection('Community')
+                                                        .doc(communityData[
+                                                            'communityId'])
+                                                        .update({
+                                                      'members': FieldValue
+                                                          .arrayRemove([
+                                                        userData[index]['uid'],
+                                                      ]),
+                                                      'admins': FieldValue
+                                                          .arrayRemove([
+                                                        userData[index]['uid'],
+                                                      ])
+                                                    });
+                                                    getData();
+                                                    Navigator.pop(context);
+                                                  },
+                                                ),
+                                              if (communityData['admins']
+                                                      .contains(FirebaseAuth
+                                                          .instance
+                                                          .currentUser!
+                                                          .uid) &&
+                                                  !communityData['admins']
+                                                      .contains(userData[index]
+                                                          ['uid']) &&
+                                                  communityData['uid'] !=
+                                                      userData[index]['uid'])
+                                                SimpleDialogOption(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  child: const Text(
+                                                      'Kullanıcıyı Engelle',
+                                                      style: TextStyle(
+                                                          color: Colors.red)),
+                                                  onPressed: () {
+                                                    FirebaseFirestore.instance
+                                                        .collection('Community')
+                                                        .doc(communityData[
+                                                            'communityId'])
+                                                        .update({
+                                                      'block': FieldValue
+                                                          .arrayUnion([
+                                                        userData[index]['uid'],
+                                                      ]),
+                                                      'admins': FieldValue
+                                                          .arrayRemove([
+                                                        userData[index]['uid'],
+                                                      ]),
+                                                      'members': FieldValue
+                                                          .arrayRemove([
+                                                        userData[index]['uid'],
+                                                      ])
+                                                    });
+                                                    getData();
+                                                    Navigator.pop(context);
+                                                  },
+                                                )
+                                            ],
                                           ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.6),
-                                            child: Text(
-                                              userData[index]['name'] +
-                                                  " " +
-                                                  userData[index]['surname'],
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium!
-                                                    .color,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                          ),
-                                          userData[index]['tick']
-                                              ? const Padding(
-                                                  padding: EdgeInsets.only(
-                                                      top: 5, left: 2),
-                                                  child: Icon(
-                                                    Iconsax.verify5,
-                                                    color: Color.fromRGBO(
-                                                        0, 86, 255, 1),
-                                                    size: 20,
+                                        );
+                                      }
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 10, top: 5, right: 10),
+                                          child: userData[index]['profImage'] !=
+                                                  null
+                                              ? ClipRRect(
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(
+                                                              50 * 0.4)),
+                                                  child: Image.network(
+                                                    userData[index]
+                                                        ['profImage'],
+                                                    height: 50,
+                                                    width: 50,
+                                                    fit: BoxFit.cover,
                                                   ),
                                                 )
-                                              : const SizedBox(),
-                                          if (communityData['admins']
-                                              .contains(userData[index]['uid']))
-                                            Container(
-                                              padding: const EdgeInsets.only(
-                                                  left: 7, right: 7),
-                                              margin: const EdgeInsets.only(
-                                                  left: 10),
-                                              decoration: BoxDecoration(
-                                                  color: Colors.amber,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)),
-                                              child: const Text(
-                                                'Yönetici',
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 18,
+                                              : Container(
+                                                  height: 50,
+                                                  width: 50,
+                                                  decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                              0, 86, 255, 1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50 * 0.4)),
+                                                  child: const Icon(
+                                                    Iconsax.people,
+                                                    color: Colors.white,
+                                                    size: 34,
+                                                  ),
+                                                ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                ConstrainedBox(
+                                                  constraints: BoxConstraints(
+                                                      maxWidth:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.6),
+                                                  child: Text(
+                                                    userData[index]['name'] +
+                                                        " " +
+                                                        userData[index]
+                                                            ['surname'],
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyMedium!
+                                                          .color,
+                                                      fontSize: 20,
+                                                    ),
+                                                  ),
+                                                ),
+                                                userData[index]['tick']
+                                                    ? const Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                top: 5,
+                                                                left: 2),
+                                                        child: Icon(
+                                                          Iconsax.verify5,
+                                                          color: Color.fromRGBO(
+                                                              0, 86, 255, 1),
+                                                          size: 20,
+                                                        ),
+                                                      )
+                                                    : const SizedBox(),
+                                                if (communityData['admins']
+                                                    .contains(
+                                                        userData[index]['uid']))
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 7, right: 7),
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            left: 10),
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.amber,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10)),
+                                                    child: const Text(
+                                                      'Yönetici',
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 18,
+                                                      ),
+                                                    ),
+                                                  )
+                                              ],
+                                            ),
+                                            if (userData[index]['bio'] != "")
+                                              ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                    maxWidth:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.6),
+                                                child: Text(
+                                                  userData[index]['bio'],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium!
+                                                        .color,
+                                                  ),
                                                 ),
                                               ),
-                                            )
-                                        ],
-                                      ),
-                                      if (userData[index]['bio'] != "")
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.6),
-                                          child: Text(
-                                            userData[index]['bio'],
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium!
-                                                  .color,
-                                            ),
-                                          ),
+                                          ],
                                         ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ],
-                              ),
-                            ),
-                          ],
-                        );
-                      }),
+                              );
+                            }),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        if (blockList != null &&
+                            communityData['admins'] != null)
+                          if (communityData['admins']
+                              .contains(FirebaseAuth.instance.currentUser!.uid))
+                            ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: blockList.length,
+                                itemBuilder: (context, index) {
+                                  return Column(
+                                    children: [
+                                      if (index == 0)
+                                        const Text(
+                                          'Engellenen Kullanıcılar',
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      InkWell(
+                                        onLongPress: () {
+                                          if (communityData['admins'].contains(
+                                              FirebaseAuth
+                                                  .instance.currentUser!.uid)) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) =>
+                                                  SimpleDialog(
+                                                backgroundColor: Colors.white,
+                                                surfaceTintColor: Colors.white,
+                                                children: [
+                                                  SimpleDialogOption(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10),
+                                                    child: const Text(
+                                                        'Engeli Kaldır',
+                                                        style: TextStyle(
+                                                            color: Colors.red)),
+                                                    onPressed: () {
+                                                      FirebaseFirestore.instance
+                                                          .collection(
+                                                              'Community')
+                                                          .doc(communityData[
+                                                              'communityId'])
+                                                          .update({
+                                                        'block': FieldValue
+                                                            .arrayRemove([
+                                                          blockList[index]
+                                                              ['uid'],
+                                                        ]),
+                                                      });
+
+                                                      blockList.removeWhere(
+                                                        (element) =>
+                                                            element['uid'] ==
+                                                            blockList[index]
+                                                                ['uid'],
+                                                      );
+                                                      getData();
+                                                      Navigator.pop(context);
+                                                    },
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 10, top: 5, right: 10),
+                                              child: blockList[index]
+                                                          ['profImage'] !=
+                                                      null
+                                                  ? ClipRRect(
+                                                      borderRadius:
+                                                          const BorderRadius
+                                                              .all(
+                                                              Radius.circular(
+                                                                  50 * 0.4)),
+                                                      child: Image.network(
+                                                        blockList[index]
+                                                            ['profImage'],
+                                                        height: 50,
+                                                        width: 50,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      height: 50,
+                                                      width: 50,
+                                                      decoration: BoxDecoration(
+                                                          color: const Color
+                                                              .fromRGBO(
+                                                              0, 86, 255, 1),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(50 *
+                                                                      0.4)),
+                                                      child: const Icon(
+                                                        Iconsax.people,
+                                                        color: Colors.white,
+                                                        size: 34,
+                                                      ),
+                                                    ),
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    ConstrainedBox(
+                                                      constraints: BoxConstraints(
+                                                          maxWidth: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.6),
+                                                      child: Text(
+                                                        blockList[index]
+                                                                ['name'] +
+                                                            " " +
+                                                            blockList[index]
+                                                                ['surname'],
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: TextStyle(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .bodyMedium!
+                                                                  .color,
+                                                          fontSize: 20,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    blockList[index]['tick']
+                                                        ? const Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                                    top: 5,
+                                                                    left: 2),
+                                                            child: Icon(
+                                                              Iconsax.verify5,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      0,
+                                                                      86,
+                                                                      255,
+                                                                      1),
+                                                              size: 20,
+                                                            ),
+                                                          )
+                                                        : const SizedBox(),
+                                                  ],
+                                                ),
+                                                if (blockList[index]['bio'] !=
+                                                    "")
+                                                  ConstrainedBox(
+                                                    constraints: BoxConstraints(
+                                                        maxWidth: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.6),
+                                                    child: Text(
+                                                      blockList[index]['bio'],
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium!
+                                                            .color,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                      ],
+                    ),
             ),
     );
   }

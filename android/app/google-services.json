@@ -14,14 +14,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "966060583440-opusgl85qcpho05nervrrgqog9i9ina9.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.eppser.app",
-            "certificate_hash": "de818e7370f35d1a2275b4108b4f4357fc33a887"
-          }
-        },
-        {
           "client_id": "966060583440-fba1i3t18n1sml9naqecb95mufnkpuhb.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -40,7 +32,8 @@
             }
           ]
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-7628048353165760~7656145118"
     }
   ],
   "configuration_version": "1"

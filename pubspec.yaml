@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.1.0+17
 
 environment:
   sdk: ">=3.4.3 <4.0.0"
@@ -170,19 +170,23 @@ flutter_native_splash:
     # App icon without an icon background: This should be 1152×1152 pixels, and fit within a circle
     # 768 pixels in diameter.
     #image: assets/android12splash.png
-    image: assets/images/logo.png
+    image: assets/images/logo_android12.png
+    android_gravity: center
+    color: "#000000"
     # Splash screen background color.
     #color: "#42a5f5"
     # App icon background color.
-    #icon_background_color: "#111111"
+    icon_background_color: "#000000"
     # The branding property allows you to specify an image used as branding in the splash screen.
-    #branding: assets/images/branding.png
+    branding: assets/images/branding.png
+    branding_dark: assets/images/branding.png
     # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
     # apply when the device is in dark mode. If they are not specified, the app will use the
     # parameters from above.
     #image_dark: assets/android12splash-invert.png
     #color_dark: "#042a49"
     #icon_background_color_dark: "#eeeeee"
+    branding_mode: bottom
 
   # The android, ios and web parameters can be used to disable generating a splash screen on a given
   # platform.
